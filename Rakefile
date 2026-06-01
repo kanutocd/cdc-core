@@ -25,7 +25,7 @@ end
 
 YARD::Rake::YardocTask.new(:yard) do |task|
   task.files = ['lib/**/*.rb']
-  task.options = ['--protected']
+  task.options = ['--protected', '--markup', 'markdown', '--readme', 'docs/index.md']
 end
 
 task default: %i[test rubocop yard]
