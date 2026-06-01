@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-
   pull_request:
 
 permissions:
@@ -17,8 +16,8 @@ jobs:
     strategy:
       matrix:
         ruby:
-          - '4.0.5'
-
+          - "3.4"
+          - "4.0"
     steps:
       - uses: actions/checkout@v6
         with:
