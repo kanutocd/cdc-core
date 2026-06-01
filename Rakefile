@@ -29,3 +29,14 @@ YARD::Rake::YardocTask.new(:yard) do |task|
 end
 
 task default: %i[test rubocop yard]
+
+desc 'Generate RBS signatures'
+task :rbs do
+  sh 'rm -rf sig'
+  sh 'bundle exec rbs prototype rb --out-dir=sig --base-dir=lib lib'
+end
+
+desc 'Validate RBS signatures'
+task :rbs_validate do
+  sh 'bundle exec steep check'
+end

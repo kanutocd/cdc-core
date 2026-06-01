@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module CDC
   module Core
     # Immutable metadata container for CDC domain objects.
@@ -8,31 +6,26 @@ module CDC
     # are recursively converted into Ractor-shareable objects. Values that Ruby
     # cannot make shareable are stored as frozen #inspect strings.
     class EventMetadata
+      @data: untyped
+
       # @return [Hash{String=>Object}] normalized metadata
-      attr_reader :data
+      attr_reader data: untyped
 
       # Build metadata from a hash-like structure.
       #
       # @param data [Hash] metadata values
-      def initialize(data = {})
-        @data = deep_shareable_hash(data)
-        Ractor.make_shareable(self)
-      end
+      def initialize: (?::Hash[untyped, untyped] data) -> void
 
       # Fetch a metadata value by string or symbol key.
       #
       # @param key [String, Symbol] metadata key
       # @return [Object, nil]
-      def [](key)
-        data[key] || data[key.to_s] || data[key.to_sym]
-      end
+      def []: (untyped key) -> untyped
 
       # Return the normalized Ractor-shareable hash.
       #
       # @return [Hash{String=>Object}]
-      def to_h
-        data
-      end
+      def to_h: () -> untyped
 
       private
 
@@ -40,39 +33,19 @@ module CDC
       #
       # @param hash [Hash]
       # @return [Hash{String=>Object}]
-      def deep_shareable_hash(hash)
-        converted = hash.each_with_object(
-          {} # : Hash[String, untyped]
-        ) do |(key, value), memo|
-          memo[normalize_key(key)] = normalize_value(value)
-        end
-        Ractor.make_shareable(converted.freeze)
-      end
+      def deep_shareable_hash: (untyped hash) -> untyped
 
       # Normalize metadata keys to frozen strings.
       #
       # @param key [Object]
       # @return [String]
-      def normalize_key(key)
-        key.to_s.freeze
-      end
+      def normalize_key: (untyped key) -> untyped
 
       # Normalize a metadata value into a shareable representation.
       #
       # @param value [Object]
       # @return [Object]
-      def normalize_value(value)
-        case value
-        when Hash
-          deep_shareable_hash(value)
-        when Array
-          Ractor.make_shareable(value.map { |item| normalize_value(item) }.freeze)
-        else
-          Ractor.make_shareable(value)
-        end
-      rescue Ractor::Error
-        Ractor.make_shareable(value.inspect.freeze)
-      end
+      def normalize_value: (untyped value) -> untyped
     end
   end
 end

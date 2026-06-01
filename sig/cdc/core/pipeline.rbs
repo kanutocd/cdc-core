@@ -1,0 +1,55 @@
+module CDC
+  module Core
+    # Connects filters with a processor to form an event-processing unit.
+    #
+    # A Pipeline first evaluates all filters. Matching events are handed to the
+    # processor, while filtered events produce skipped results. Processor errors
+    # are captured as failure results instead of escaping to the caller.
+    class Pipeline
+      @processor: untyped
+
+      @filters: untyped
+
+      # @return [#process] processor invoked for matching events
+      # @return [Array<Filter>] filters that must all match before processing
+      attr_reader processor: untyped
+
+      # @return [#process] processor invoked for matching events
+      # @return [Array<Filter>] filters that must all match before processing
+      attr_reader filters: untyped
+
+      # Build a pipeline.
+      #
+      # @param processor [#process] processor for matching events
+      # @param filters [Array<Filter>] filters applied before processing
+      def initialize: (processor: untyped, ?filters: untyped) -> void
+
+      # Process one event through the pipeline.
+      #
+      # @param event [ChangeEvent] event to process
+      # @return [ProcessorResult]
+      def process: (untyped event) -> untyped
+
+      # Process many events in order.
+      #
+      # @param events [Enumerable<ChangeEvent>] events to process
+      # @return [Array<ProcessorResult>]
+      def process_many: (untyped events) -> untyped
+
+      private
+
+      # Check whether every filter matches an event.
+      #
+      # @param event [ChangeEvent]
+      # @return [Boolean]
+      def matches?: (untyped event) -> untyped
+
+      # Normalize raw processor output into a ProcessorResult.
+      #
+      # @param result [Object] raw processor result
+      # @param event [ChangeEvent] processed event
+      # @return [ProcessorResult]
+      def normalize_result: (untyped result, untyped event) -> untyped
+    end
+  end
+end

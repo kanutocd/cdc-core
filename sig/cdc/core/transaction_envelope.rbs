@@ -1,0 +1,79 @@
+module CDC
+  module Core
+    # Immutable group of change events committed in one transaction.
+    #
+    # TransactionEnvelope is useful when a downstream processor needs transaction
+    # boundaries instead of isolated row-level events. The contained events and
+    # metadata are Ractor-shareable when construction succeeds.
+    class TransactionEnvelope
+      @transaction_id: untyped
+
+      @events: untyped
+
+      @commit_lsn: untyped
+
+      @committed_at: untyped
+
+      @metadata: untyped
+
+      # @return [Object] transaction identifier
+      # @return [Array<ChangeEvent>] events committed by the transaction
+      # @return [String, nil] commit log sequence number
+      # @return [Time, nil] commit timestamp
+      # @return [EventMetadata] transaction metadata
+      attr_reader transaction_id: untyped
+
+      # @return [Object] transaction identifier
+      # @return [Array<ChangeEvent>] events committed by the transaction
+      # @return [String, nil] commit log sequence number
+      # @return [Time, nil] commit timestamp
+      # @return [EventMetadata] transaction metadata
+      attr_reader events: untyped
+
+      # @return [Object] transaction identifier
+      # @return [Array<ChangeEvent>] events committed by the transaction
+      # @return [String, nil] commit log sequence number
+      # @return [Time, nil] commit timestamp
+      # @return [EventMetadata] transaction metadata
+      attr_reader commit_lsn: untyped
+
+      # @return [Object] transaction identifier
+      # @return [Array<ChangeEvent>] events committed by the transaction
+      # @return [String, nil] commit log sequence number
+      # @return [Time, nil] commit timestamp
+      # @return [EventMetadata] transaction metadata
+      attr_reader committed_at: untyped
+
+      # @return [Object] transaction identifier
+      # @return [Array<ChangeEvent>] events committed by the transaction
+      # @return [String, nil] commit log sequence number
+      # @return [Time, nil] commit timestamp
+      # @return [EventMetadata] transaction metadata
+      attr_reader metadata: untyped
+
+      # Build a transaction envelope.
+      #
+      # @param transaction_id [Object] upstream transaction identifier
+      # @param events [Array<ChangeEvent>] committed events
+      # @param commit_lsn [#to_s, nil] commit log sequence number
+      # @param committed_at [Time, nil] commit timestamp
+      # @param metadata [Hash, EventMetadata] transaction metadata
+      def initialize: (transaction_id: untyped, events: untyped, ?commit_lsn: untyped?, ?committed_at: untyped?, ?metadata: ::Hash[untyped, untyped]) -> void
+
+      # Whether the envelope has no events.
+      #
+      # @return [Boolean]
+      def empty?: () -> untyped
+
+      # Number of events in the envelope.
+      #
+      # @return [Integer]
+      def size: () -> untyped
+
+      # Convert the transaction envelope into a Ractor-shareable hash.
+      #
+      # @return [Hash{String=>Object,nil}]
+      def to_h: () -> untyped
+    end
+  end
+end

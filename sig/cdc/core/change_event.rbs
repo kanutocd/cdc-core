@@ -1,0 +1,226 @@
+module CDC
+  module Core
+    # Immutable representation of one logical database change.
+    #
+    # ChangeEvent is the core data structure passed through filters, pipelines,
+    # and processors. It is database-agnostic but carries common CDC fields such
+    # as operation, schema, table, before/after values, primary key, LSN, and
+    # metadata.
+    class ChangeEvent
+      @operation: untyped
+
+      @schema: untyped
+
+      @table: untyped
+
+      @old_values: untyped
+
+      @new_values: untyped
+
+      @primary_key: untyped
+
+      @transaction_id: untyped
+
+      @commit_lsn: untyped
+
+      @sequence_number: untyped
+
+      @occurred_at: untyped
+
+      @metadata: untyped
+
+      # @return [Symbol] normalized CDC operation
+      # @return [String] database schema name
+      # @return [String] database table name
+      # @return [Hash, nil] values before the change
+      # @return [Hash, nil] values after the change
+      # @return [Hash, nil] primary key values for the changed row
+      # @return [Object, nil] transaction identifier from the upstream source
+      # @return [String, nil] commit log sequence number
+      # @return [Integer, nil] event sequence within a transaction or stream
+      # @return [Time, nil] timestamp associated with the event
+      # @return [EventMetadata] additional normalized metadata
+      attr_reader operation: untyped
+
+      # @return [Symbol] normalized CDC operation
+      # @return [String] database schema name
+      # @return [String] database table name
+      # @return [Hash, nil] values before the change
+      # @return [Hash, nil] values after the change
+      # @return [Hash, nil] primary key values for the changed row
+      # @return [Object, nil] transaction identifier from the upstream source
+      # @return [String, nil] commit log sequence number
+      # @return [Integer, nil] event sequence within a transaction or stream
+      # @return [Time, nil] timestamp associated with the event
+      # @return [EventMetadata] additional normalized metadata
+      attr_reader schema: untyped
+
+      # @return [Symbol] normalized CDC operation
+      # @return [String] database schema name
+      # @return [String] database table name
+      # @return [Hash, nil] values before the change
+      # @return [Hash, nil] values after the change
+      # @return [Hash, nil] primary key values for the changed row
+      # @return [Object, nil] transaction identifier from the upstream source
+      # @return [String, nil] commit log sequence number
+      # @return [Integer, nil] event sequence within a transaction or stream
+      # @return [Time, nil] timestamp associated with the event
+      # @return [EventMetadata] additional normalized metadata
+      attr_reader table: untyped
+
+      # @return [Symbol] normalized CDC operation
+      # @return [String] database schema name
+      # @return [String] database table name
+      # @return [Hash, nil] values before the change
+      # @return [Hash, nil] values after the change
+      # @return [Hash, nil] primary key values for the changed row
+      # @return [Object, nil] transaction identifier from the upstream source
+      # @return [String, nil] commit log sequence number
+      # @return [Integer, nil] event sequence within a transaction or stream
+      # @return [Time, nil] timestamp associated with the event
+      # @return [EventMetadata] additional normalized metadata
+      attr_reader old_values: untyped
+
+      # @return [Symbol] normalized CDC operation
+      # @return [String] database schema name
+      # @return [String] database table name
+      # @return [Hash, nil] values before the change
+      # @return [Hash, nil] values after the change
+      # @return [Hash, nil] primary key values for the changed row
+      # @return [Object, nil] transaction identifier from the upstream source
+      # @return [String, nil] commit log sequence number
+      # @return [Integer, nil] event sequence within a transaction or stream
+      # @return [Time, nil] timestamp associated with the event
+      # @return [EventMetadata] additional normalized metadata
+      attr_reader new_values: untyped
+
+      # @return [Symbol] normalized CDC operation
+      # @return [String] database schema name
+      # @return [String] database table name
+      # @return [Hash, nil] values before the change
+      # @return [Hash, nil] values after the change
+      # @return [Hash, nil] primary key values for the changed row
+      # @return [Object, nil] transaction identifier from the upstream source
+      # @return [String, nil] commit log sequence number
+      # @return [Integer, nil] event sequence within a transaction or stream
+      # @return [Time, nil] timestamp associated with the event
+      # @return [EventMetadata] additional normalized metadata
+      attr_reader primary_key: untyped
+
+      # @return [Symbol] normalized CDC operation
+      # @return [String] database schema name
+      # @return [String] database table name
+      # @return [Hash, nil] values before the change
+      # @return [Hash, nil] values after the change
+      # @return [Hash, nil] primary key values for the changed row
+      # @return [Object, nil] transaction identifier from the upstream source
+      # @return [String, nil] commit log sequence number
+      # @return [Integer, nil] event sequence within a transaction or stream
+      # @return [Time, nil] timestamp associated with the event
+      # @return [EventMetadata] additional normalized metadata
+      attr_reader transaction_id: untyped
+
+      # @return [Symbol] normalized CDC operation
+      # @return [String] database schema name
+      # @return [String] database table name
+      # @return [Hash, nil] values before the change
+      # @return [Hash, nil] values after the change
+      # @return [Hash, nil] primary key values for the changed row
+      # @return [Object, nil] transaction identifier from the upstream source
+      # @return [String, nil] commit log sequence number
+      # @return [Integer, nil] event sequence within a transaction or stream
+      # @return [Time, nil] timestamp associated with the event
+      # @return [EventMetadata] additional normalized metadata
+      attr_reader commit_lsn: untyped
+
+      # @return [Symbol] normalized CDC operation
+      # @return [String] database schema name
+      # @return [String] database table name
+      # @return [Hash, nil] values before the change
+      # @return [Hash, nil] values after the change
+      # @return [Hash, nil] primary key values for the changed row
+      # @return [Object, nil] transaction identifier from the upstream source
+      # @return [String, nil] commit log sequence number
+      # @return [Integer, nil] event sequence within a transaction or stream
+      # @return [Time, nil] timestamp associated with the event
+      # @return [EventMetadata] additional normalized metadata
+      attr_reader sequence_number: untyped
+
+      # @return [Symbol] normalized CDC operation
+      # @return [String] database schema name
+      # @return [String] database table name
+      # @return [Hash, nil] values before the change
+      # @return [Hash, nil] values after the change
+      # @return [Hash, nil] primary key values for the changed row
+      # @return [Object, nil] transaction identifier from the upstream source
+      # @return [String, nil] commit log sequence number
+      # @return [Integer, nil] event sequence within a transaction or stream
+      # @return [Time, nil] timestamp associated with the event
+      # @return [EventMetadata] additional normalized metadata
+      attr_reader occurred_at: untyped
+
+      # @return [Symbol] normalized CDC operation
+      # @return [String] database schema name
+      # @return [String] database table name
+      # @return [Hash, nil] values before the change
+      # @return [Hash, nil] values after the change
+      # @return [Hash, nil] primary key values for the changed row
+      # @return [Object, nil] transaction identifier from the upstream source
+      # @return [String, nil] commit log sequence number
+      # @return [Integer, nil] event sequence within a transaction or stream
+      # @return [Time, nil] timestamp associated with the event
+      # @return [EventMetadata] additional normalized metadata
+      attr_reader metadata: untyped
+
+      # Build a change event.
+      #
+      # @param operation [#to_sym] CDC operation
+      # @param schema [#to_s] schema name
+      # @param table [#to_s] table name
+      # @param old_values [Hash, nil] values before the change
+      # @param new_values [Hash, nil] values after the change
+      # @param primary_key [Hash, nil] primary key values
+      # @param transaction_id [Object, nil] source transaction identifier
+      # @param commit_lsn [#to_s, nil] commit log sequence number
+      # @param sequence_number [Integer, nil] event sequence number
+      # @param occurred_at [Time, nil] event timestamp
+      # @param metadata [Hash, EventMetadata] additional event metadata
+      def initialize: (operation: untyped, schema: untyped, table: untyped, ?old_values: untyped?, ?new_values: untyped?, ?primary_key: untyped?, ?transaction_id: untyped?, ?commit_lsn: untyped?, ?sequence_number: untyped?, ?occurred_at: untyped?, ?metadata: ::Hash[untyped, untyped]) -> void
+
+      # @return [Boolean] true for insert events
+      def insert?: () -> untyped
+
+      # @return [Boolean] true for update events
+      def update?: () -> untyped
+
+      # @return [Boolean] true for delete events
+      def delete?: () -> untyped
+
+      # Fully qualified table name in schema.table form.
+      #
+      # @return [String]
+      def qualified_table_name: () -> ::String
+
+      # Compute changed columns by comparing old and new values.
+      #
+      # Columns with equal old and new values are omitted. Insert and delete
+      # events can pass nil for one side; missing values are represented as nil.
+      #
+      # @return [Array<ColumnChange>] Ractor-shareable changed columns
+      def changes: () -> untyped
+
+      # Convert the event into a Ractor-shareable hash.
+      #
+      # @return [Hash{String=>Object,nil}]
+      def to_h: () -> untyped
+
+      private
+
+      # Convert a hash into immutable EventMetadata storage, preserving nil.
+      #
+      # @param hash [Hash, nil]
+      # @return [Hash, nil]
+      def freeze_hash_or_nil: (untyped hash) -> (nil | untyped)
+    end
+  end
+end
