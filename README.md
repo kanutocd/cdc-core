@@ -1,43 +1,166 @@
-# Cdc::Core
+# cdc-core
 
-TODO: Delete this and the text below, and describe your gem
+Database-agnostic Change Data Capture domain primitives for Ruby.
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/cdc/core`. To experiment with that code, run `bin/console` for an interactive prompt.
+`cdc-core` provides immutable, Ractor-safe event objects and processor contracts for building CDC systems. It intentionally does not connect to databases, parse wire protocols, decode PostgreSQL OIDs, or integrate with Rails.
+
+## Requirements
+
+- Ruby 3.4+
+
+## Features
+
+- Immutable `ChangeEvent` objects
+- Transaction grouping via `TransactionEnvelope`
+- Column-level change objects
+- Processor and composite processor contracts
+- Event filters
+- Small pipeline orchestration object
+- Ractor-safe event and transaction objects
+- RBS signatures
+- YARD-compatible documentation
+- No runtime dependencies
+
+## Ecosystem Position
+
+```text
+pgoutput-client
+      │
+      ▼
+pgoutput-parser
+      │
+      ▼
+pgoutput-decoder
+      │
+      ▼
+cdc-core
+      │
+      ▼
+whodunit-chronicles
+```
+
+`cdc-core` is the shared vocabulary layer. It defines what a change event, transaction, processor, and pipeline result means without caring where the event came from.
 
 ## Installation
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
-
-Install the gem and add to the application's Gemfile by executing:
-
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```ruby
+gem "cdc-core"
 ```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
-
-```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```ruby
+require "cdc/core"
 ```
 
-## Usage
+## Change Events
 
-TODO: Write usage instructions here
+```ruby
+event = CDC::Core::ChangeEvent.new(
+  operation: :update,
+  schema: "public",
+  table: "users",
+  old_values: { "email" => "old@example.com" },
+  new_values: { "email" => "new@example.com" },
+  primary_key: { "id" => 7 },
+  transaction_id: 789,
+  commit_lsn: "0/16B6C50"
+)
+
+event.update?
+# => true
+
+event.qualified_table_name
+# => "public.users"
+
+event.changes.map(&:name)
+# => ["email"]
+```
+
+## Transactions
+
+```ruby
+transaction = CDC::Core::TransactionEnvelope.new(
+  transaction_id: 789,
+  events: [event],
+  commit_lsn: "0/16B6C50",
+  committed_at: Time.now.utc
+)
+```
+
+A transaction envelope is the natural unit for future parallel processing because it preserves database transaction boundaries.
+
+## Processors
+
+```ruby
+class AuditProcessor < CDC::Core::Processor
+  def process(event)
+    puts event.to_h
+    CDC::Core::ProcessorResult.success(event)
+  end
+end
+```
+
+## Ractor-safe processor intent
+
+```ruby
+class AnalyticsProcessor < CDC::Core::Processor
+  ractor_safe!
+
+  def process(event)
+    CDC::Core::ProcessorResult.success(event)
+  end
+end
+
+AnalyticsProcessor.new.ractor_safe?
+# => true
+```
+
+This declares intent only. `cdc-core` does not execute processors in Ractors. A future runtime gem can use this signal.
+
+## Composite Processor
+
+```ruby
+processor = CDC::Core::CompositeProcessor.new([
+  AuditProcessor.new,
+  AnalyticsProcessor.new
+])
+
+results = processor.process(event)
+```
+
+## Filters and Pipeline
+
+```ruby
+pipeline = CDC::Core::Pipeline.new(
+  processor: AuditProcessor.new,
+  filters: [
+    CDC::Core::Filter.schema("public"),
+    CDC::Core::Filter.table("users")
+  ]
+)
+
+result = pipeline.process(event)
+```
+
+## Non-goals
+
+`cdc-core` does not:
+
+- Connect to PostgreSQL
+- Parse `pgoutput`
+- Decode PostgreSQL values
+- Manage replication slots
+- Run Ractor pools
+- Persist audit records
+- Integrate with ActiveRecord
+- Publish to Kafka, Redis, or HTTP sinks
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/cdc-core. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/cdc-core/blob/main/CODE_OF_CONDUCT.md).
+```bash
+bundle exec rake
+bundle exec steep check
+```
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
-
-## Code of Conduct
-
-Everyone interacting in the Cdc::Core project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/cdc-core/blob/main/CODE_OF_CONDUCT.md).
+MIT.
