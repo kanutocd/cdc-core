@@ -13,8 +13,14 @@ require_relative 'core/composite_processor'
 require_relative 'core/filter'
 require_relative 'core/pipeline'
 
+# Top-level namespace for Change Data Capture libraries.
 module CDC
   # Database-agnostic Change Data Capture domain primitives.
+  #
+  # CDC::Core intentionally contains only lightweight runtime abstractions:
+  # events, metadata, processors, filters, pipelines, and processor results.
+  # Transport, PostgreSQL protocol parsing, and value decoding live in sibling
+  # gems so this layer can remain independently useful.
   module Core
   end
 end
