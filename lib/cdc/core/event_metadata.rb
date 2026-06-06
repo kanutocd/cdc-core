@@ -24,7 +24,10 @@ module CDC
       # @param key [String, Symbol] metadata key
       # @return [Object, nil]
       def [](key)
-        data[key] || data[key.to_s] || data[key.to_sym]
+        string_key = key.to_s
+        return data[string_key] if data.key?(string_key)
+
+        data[key]
       end
 
       # Return the normalized Ractor-shareable hash.
