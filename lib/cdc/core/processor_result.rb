@@ -8,6 +8,9 @@ module CDC
     # successful processing, skipped events, and failures without relying on
     # processor-specific return values.
     class ProcessorResult
+      # Allowed result statuses.
+      VALID_STATUSES = Ractor.make_shareable(%i[success failure skipped].freeze)
+
       # @return [Symbol] result status
       # @return [ChangeEvent, nil] event associated with the result
       # @return [Exception, nil] failure error, when status is :failure
@@ -25,9 +28,24 @@ module CDC
       #
       # @param error [Exception] processor error
       # @param event [ChangeEvent, nil] event being processed
+      # @param reason [String, nil] human-readable failure reason
+      # @param retryable [Boolean, nil] whether the failure can be retried
+      # @param processor [String, nil] processor name associated with the failure
+      # @param failed_at [String, nil] timestamp for when the failure occurred
       # @param metadata [Hash, EventMetadata] result metadata
       # @return [ProcessorResult]
-      def self.failure(error, event: nil, metadata: {}) = new(:failure, event:, error:, metadata:)
+      def self.failure(error, event: nil, reason: nil, retryable: nil, processor: nil, failed_at: nil,
+                       metadata: nil)
+        base_metadata = metadata.nil? ? EventMetadata.new.to_h : metadata.to_h
+        failure_metadata = base_metadata.merge(
+          reason: reason || error.message,
+          retryable: retryable,
+          processor: processor || error.class.name,
+          failed_at: failed_at || Time.now.utc.strftime('%Y-%m-%dT%H:%M:%S.%6NZ')
+        ).compact
+
+        new(:failure, event:, error:, metadata: failure_metadata)
+      end
 
       # Build a skipped result.
       #
@@ -43,7 +61,7 @@ module CDC
       # @param error [Exception, nil] associated failure
       # @param metadata [Hash, EventMetadata] result metadata
       def initialize(status, event: nil, error: nil, metadata: {})
-        @status = status.to_sym
+        @status = normalize_status(status)
         @event = event
         @error = error
         @metadata = metadata.is_a?(EventMetadata) ? metadata : EventMetadata.new(metadata)
@@ -58,6 +76,82 @@ module CDC
 
       # @return [Boolean] true when status is :skipped
       def skipped? = status == :skipped
+
+      # Human-readable failure reason, when present.
+      #
+      # @return [String, nil]
+      def failure_reason
+        metadata[:reason]
+      end
+
+      # Whether the failure is retryable.
+      #
+      # @return [Boolean]
+      def retryable?
+        metadata[:retryable] == true
+      end
+
+      # Name of the processor associated with the failure, when present.
+      #
+      # @return [String, nil]
+      def processor_name
+        metadata[:processor]
+      end
+
+      # Timestamp for when the failure occurred, when present.
+      #
+      # @return [String, nil]
+      def failed_at
+        metadata[:failed_at]
+      end
+
+      # Error class name, when present.
+      #
+      # @return [String, nil]
+      def error_class
+        error&.class&.name
+      end
+
+      # Error message, when present.
+      #
+      # @return [String, nil]
+      def error_message
+        error&.message
+      end
+
+      # Error backtrace, when present.
+      #
+      # @return [Array<String>]
+      def error_backtrace
+        Array(error&.backtrace)
+      end
+
+      # Convert the result into a shareable hash.
+      #
+      # @return [Hash{String=>Object,nil}]
+      def to_h
+        payload = {
+          'status' => status,
+          'event' => event&.to_h,
+          'error_class' => error_class,
+          'error_message' => error_message,
+          'error_backtrace' => error_backtrace,
+          'metadata' => metadata.to_h
+        }
+
+        Ractor.make_shareable(payload.freeze)
+      end
+
+      private
+
+      def normalize_status(status)
+        value = status.to_sym
+        return value if VALID_STATUSES.include?(value)
+
+        raise ArgumentError, "unsupported processor result status: #{status.inspect}"
+      rescue NoMethodError
+        raise ArgumentError, "unsupported processor result status: #{status.inspect}"
+      end
     end
   end
 end
