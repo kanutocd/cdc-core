@@ -10,15 +10,18 @@ module CDC
     class Pipeline
       # @return [#process] processor invoked for matching events
       # @return [Array<Filter>] filters that must all match before processing
-      attr_reader :processor, :filters
+      # @return [Observer] observer notified of dispatch events
+      attr_reader :processor, :filters, :observer
 
       # Build a pipeline.
       #
       # @param processor [#process] processor for matching events
       # @param filters [Array<Filter>] filters applied before processing
-      def initialize(processor:, filters: [])
+      # @param observer [Observer, nil] instrumentation observer
+      def initialize(processor:, filters: [], observer: NullObserver::INSTANCE)
         @processor = processor
         @filters = filters.freeze
+        @observer = observer || NullObserver::INSTANCE
       end
 
       # Process one event through the pipeline.
@@ -26,11 +29,16 @@ module CDC
       # @param event [ChangeEvent] event to process
       # @return [ProcessorResult]
       def process(event)
+        observer.dispatch_started(event)
         return ProcessorResult.skipped(event, metadata: { reason: 'filtered' }) unless matches?(event)
 
-        normalize_result(processor.process(event), event)
+        result = normalize_result(processor.process(event), event)
+        observe_result(result)
+        result
       rescue StandardError => e
-        ProcessorResult.failure(e, event:)
+        result = ProcessorResult.failure(e, event:, processor: processor.class.name)
+        observer.dispatch_failed(result)
+        result
       end
 
       # Process many events in order.
@@ -60,6 +68,17 @@ module CDC
         return result if result.is_a?(ProcessorResult)
 
         result ? ProcessorResult.success(event) : ProcessorResult.skipped(event)
+      end
+
+      def observe_result(result)
+        case result.status
+        when :success
+          observer.dispatch_succeeded(result)
+        when :failure
+          observer.dispatch_failed(result)
+        when :skipped
+          observer.dispatch_skipped(result)
+        end
       end
     end
   end

@@ -29,6 +29,45 @@ module CDC
         self.class.ractor_safe?
       end
 
+      # Start the processor.
+      #
+      # Runtime layers can call this before dispatch begins. The default
+      # implementation is a no-op.
+      #
+      # @return [self]
+      def start
+        self
+      end
+
+      # Stop the processor.
+      #
+      # Runtime layers can call this during shutdown. The default implementation
+      # is a no-op.
+      #
+      # @return [self]
+      def stop
+        self
+      end
+
+      # Flush any buffered work.
+      #
+      # Runtime layers can call this before shutdown or checkpoints. The
+      # default implementation is a no-op.
+      #
+      # @return [self]
+      def flush
+        self
+      end
+
+      # Whether the processor is healthy and ready to accept work.
+      #
+      # The default implementation assumes the processor is healthy.
+      #
+      # @return [Boolean]
+      def healthy?
+        true
+      end
+
       # Process one event.
       #
       # Subclasses must override this method.
