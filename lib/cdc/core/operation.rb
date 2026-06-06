@@ -35,6 +35,8 @@ module CDC
         return value if SUPPORTED.include?(value)
 
         raise InvalidOperationError, "unsupported CDC operation: #{operation.inspect}"
+      rescue NoMethodError
+        raise InvalidOperationError, "unsupported CDC operation: #{operation.inspect}"
       end
 
       # Check whether an operation-like value is supported.
