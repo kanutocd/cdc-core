@@ -28,14 +28,13 @@ YARD::Rake::YardocTask.new(:yard)
 
 task default: %i[test rubocop yard]
 
-
 namespace :rbs do
   desc 'Generate RBS signature files'
   task :generate do
     sh 'bundle exec rbs prototype rb --out-dir=sig --base-dir=lib lib'
   end
 
-  desc "Delete all RBS signature files"
+  desc 'Delete all RBS signature files'
   task :clobber do
     sh 'rm -rf sig'
   end
