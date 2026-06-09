@@ -1,15 +1,23 @@
-# Changelog
-
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
 ## [Unreleased]
+
+## [0.1.1] - 2026-06-09
 
 ### Added
 
-- Placeholder for future development.
+- Added `CDC::Core::OrderingScope`, `OrderingPolicy`, `OrderingKey`, and `EventPosition`.
+- Added `CDC::Core::SourceAdapter` as the shared source normalization contract.
+- Added `CDC::Core::Router` and `UnsupportedWorkItemError`.
+- Added optional lifecycle hooks to `CDC::Core::Processor`.
+- Added structured failure metadata to `CDC::Core::ProcessorResult`.
+- Added status validation and serializable projection helpers to `CDC::Core::ProcessorResult`.
+- Added backend-agnostic observer hooks for instrumentation.
+- Added canonical metric names and tag helpers to `CDC::Core::Observer`.
+
+### Fixed
+
+- Preserve explicit `false` metadata values when reading `EventMetadata` by symbol or string key.
+- Raise `CDC::Core::InvalidOperationError` for nil operation input instead of leaking `NoMethodError`.
+- Align API documentation examples with the current `#process`, `Pipeline.new(processor:)`, and `Filter#match?` contracts.
 
 ---
 
