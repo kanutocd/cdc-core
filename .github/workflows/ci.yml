@@ -1,4 +1,4 @@
-name: Ruby
+name: CI
 
 on:
   push:
@@ -28,4 +28,4 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       - name: Run the default task
-        run: bundle exec rake
+        run: COVERAGE=true bundle exec rake
