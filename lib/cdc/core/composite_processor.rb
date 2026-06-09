@@ -10,15 +10,17 @@ module CDC
     class CompositeProcessor < Processor
       # @return [Array<Processor>] processors executed for each event
       # @return [Boolean] whether processing stops on the first failure
-      attr_reader :processors, :fail_fast
+      # @return [Observer] observer notified of dispatch events
+      attr_reader :processors, :fail_fast, :observer
 
       # Build a composite processor.
       #
       # @param processors [Array<#process>] processors to execute
       # @param fail_fast [Boolean] whether to stop after the first failure
-      def initialize(processors, fail_fast: true) # rubocop:disable Lint/MissingSuper
+      def initialize(processors, fail_fast: true, observer: NullObserver::INSTANCE) # rubocop:disable Lint/MissingSuper
         @processors = processors.freeze
         @fail_fast = fail_fast
+        @observer = observer || NullObserver::INSTANCE
       end
 
       # Process an event through each configured processor.
@@ -26,18 +28,12 @@ module CDC
       # @param event [ChangeEvent] event to process
       # @return [Array<ProcessorResult>] result from each attempted processor
       def process(event)
-        results = [] # : Array[ProcessorResult]
-        processors.each do |processor|
-          result = normalize_result(processor.process(event), event)
-          results << result
-          break if fail_fast && result.failure?
-        rescue StandardError => e
-          result = ProcessorResult.failure(e, event:)
-          results << result
-          break if fail_fast
-        end
-        Ractor.make_shareable(results.freeze) if results.none?(&:failure?)
-        results.freeze
+        observer.dispatch_started(event)
+        results = collect_results(event)
+        final_results = results.freeze
+        observe_results(final_results)
+        Ractor.make_shareable(final_results) if results.none?(&:failure?)
+        final_results
       end
 
       # Processors that declared Ractor safety.
@@ -65,6 +61,35 @@ module CDC
         return result if result.is_a?(ProcessorResult)
 
         result ? ProcessorResult.success(event) : ProcessorResult.skipped(event)
+      end
+
+      def collect_results(event)
+        results = [] # : Array[ProcessorResult]
+        processors.each do |processor|
+          result = process_with(processor, event)
+          results << result
+          break if fail_fast && result.failure?
+        end
+        results
+      end
+
+      def process_with(processor, event)
+        normalize_result(processor.process(event), event)
+      rescue StandardError => e
+        ProcessorResult.failure(e, event:, processor: processor.class.name)
+      end
+
+      def observe_results(results)
+        results.each do |result|
+          case result.status
+          when :success
+            observer.dispatch_succeeded(result)
+          when :failure
+            observer.dispatch_failed(result)
+          when :skipped
+            observer.dispatch_skipped(result)
+          end
+        end
       end
     end
   end
