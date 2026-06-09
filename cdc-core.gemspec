@@ -8,9 +8,10 @@ Gem::Specification.new do |spec|
   spec.authors = ['Ken C. Demanawa']
   spec.email = ['kenneth.c.demanawa@gmail.com']
 
-  spec.summary = 'Database-agnostic Change Data Capture domain primitives for Ruby.'
+  spec.summary = 'Source-agnostic Change Data Capture contracts and domain primitives for Ruby..'
   spec.description = <<~DESC
-    CDC Core provides immutable, Ractor-safe Change Data Capture domain objects, processor contracts, filters, and pipeline primitives.
+    CDC Core provides immutable, Ractor-safe Change Data Capture contracts and domain primitives,
+    including source adapters, change events, processors, routing, ordering policies, and pipelines.
   DESC
   spec.homepage = 'https://github.com/kanutocd/cdc-core'
   spec.license = 'MIT'
