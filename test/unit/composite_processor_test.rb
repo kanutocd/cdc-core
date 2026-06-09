@@ -76,6 +76,16 @@ class CompositeProcessorTest < Minitest::Test
     assert_predicate results.first, :failure?
   end
 
+  def test_composite_processor_wraps_exception_with_failure_metadata
+    processor = CDC::Core::CompositeProcessor.new([RaisingProcessor.new], fail_fast: true)
+
+    result = processor.process(event).first
+
+    assert_predicate result, :failure?
+    assert_equal 'CompositeProcessorTest::RaisingProcessor', result.processor_name
+    assert_equal 'boom', result.failure_reason
+  end
+
   def test_composite_processor_continues_after_failure_when_fail_fast_is_false
     processor = CDC::Core::CompositeProcessor.new(
       [RaisingProcessor.new, TruthyProcessor.new, FalseyProcessor.new],

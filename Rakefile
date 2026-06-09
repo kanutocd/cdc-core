@@ -23,10 +23,8 @@ RuboCop::RakeTask.new(:rubocop) do |task|
   task.options = ['--parallel']
 end
 
-YARD::Rake::YardocTask.new(:yard) do |task|
-  task.files = ['lib/**/*.rb']
-  task.options = ['--protected', '--markup', 'markdown', '--readme', 'docs/index.md']
-end
+# so both `bundle exec rake yard` and `bundle exec yard doc` fetch options from ./.yardopts
+YARD::Rake::YardocTask.new(:yard)
 
 task default: %i[test rubocop yard]
 

@@ -58,5 +58,7 @@ class PipelineTest < Minitest::Test
 
     assert_predicate result, :failure?
     assert_equal 'boom', result.error.message
+    assert_equal 'PipelineTest::RaisingProcessor', result.processor_name
+    assert_equal 'boom', result.failure_reason
   end
 end
