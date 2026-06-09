@@ -1,0 +1,24 @@
+module CDC
+  module Core
+    # Routes CDC work items to the appropriate handler.
+    class Router
+      @processor: untyped
+      @transaction_processor: untyped
+      @observer: untyped
+
+      attr_reader processor: untyped
+      attr_reader transaction_processor: untyped
+      attr_reader observer: untyped
+
+      def initialize: (processor: untyped, ?transaction_processor: untyped?, ?observer: untyped?) -> void
+      def process: (untyped item) -> untyped
+
+      private
+
+      def route_transaction: (untyped transaction) -> untyped
+      def route_many: (untyped items) -> untyped
+      def observe_result: (untyped result) -> untyped
+      def observe_results: (untyped results) -> untyped
+    end
+  end
+end

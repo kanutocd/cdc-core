@@ -1,0 +1,10 @@
+# Base class for source adapters that normalize upstream payloads into CDC
+# core domain objects.
+module CDC
+  module Core
+    class SourceAdapter
+      def normalize: (untyped input) -> untyped
+      def normalize_many: (untyped inputs) -> ::Array[untyped]
+    end
+  end
+end

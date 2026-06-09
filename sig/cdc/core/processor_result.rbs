@@ -6,6 +6,7 @@ module CDC
     # successful processing, skipped events, and failures without relying on
     # processor-specific return values.
     class ProcessorResult
+      VALID_STATUSES: untyped
       @status: untyped
 
       @event: untyped
@@ -49,9 +50,13 @@ module CDC
       #
       # @param error [Exception] processor error
       # @param event [ChangeEvent, nil] event being processed
+      # @param reason [String, nil] human-readable failure reason
+      # @param retryable [Boolean, nil] whether the failure can be retried
+      # @param processor [String, nil] processor name associated with the failure
+      # @param failed_at [String, nil] timestamp for when the failure occurred
       # @param metadata [Hash, EventMetadata] result metadata
       # @return [ProcessorResult]
-      def self.failure: (untyped error, ?event: untyped?, ?metadata: ::Hash[untyped, untyped]) -> untyped
+      def self.failure: (untyped error, ?event: untyped?, ?reason: untyped?, ?retryable: untyped?, ?processor: untyped?, ?failed_at: untyped?, ?metadata: untyped) -> untyped
 
       # Build a skipped result.
       #
@@ -76,6 +81,50 @@ module CDC
 
       # @return [Boolean] true when status is :skipped
       def skipped?: () -> untyped
+
+      # Human-readable failure reason, when present.
+      #
+      # @return [String, nil]
+      def failure_reason: () -> untyped
+
+      # Whether the failure is retryable.
+      #
+      # @return [Boolean]
+      def retryable?: () -> bool
+
+      # Name of the processor associated with the failure, when present.
+      #
+      # @return [String, nil]
+      def processor_name: () -> untyped
+
+      # Timestamp for when the failure occurred, when present.
+      #
+      # @return [String, nil]
+      def failed_at: () -> untyped
+
+      # Error class name, when present.
+      #
+      # @return [String, nil]
+      def error_class: () -> untyped
+
+      # Error message, when present.
+      #
+      # @return [String, nil]
+      def error_message: () -> untyped
+
+      # Error backtrace, when present.
+      #
+      # @return [Array<String>]
+      def error_backtrace: () -> untyped
+
+      # Convert the result into a shareable hash.
+      #
+      # @return [Hash{String=>Object,nil}]
+      def to_h: () -> untyped
+
+      private
+
+      def normalize_status: (untyped status) -> untyped
     end
   end
 end

@@ -1,0 +1,19 @@
+module CDC
+  module Core
+    # Canonical ordering scopes used by the CDC ecosystem.
+    module OrderingScope
+      GLOBAL: :global
+      TRANSACTION: :transaction
+      RELATION: :relation
+      PRIMARY_KEY: :primary_key
+      NONE: :none
+      SUPPORTED: untyped
+
+      def normalize: (untyped scope) -> untyped
+      def supported?: (untyped scope) -> bool
+
+      def self.normalize: (untyped scope) -> untyped
+      def self.supported?: (untyped scope) -> bool
+    end
+  end
+end

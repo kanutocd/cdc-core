@@ -1,0 +1,27 @@
+module CDC
+  module Core
+    # Immutable description of how ordered CDC work should be grouped.
+    class OrderingPolicy
+      @scope: untyped
+      @position: untyped
+      @transaction_aware: untyped
+
+      SUPPORTED_POSITIONS: untyped
+
+      attr_reader scope: untyped
+      attr_reader position: untyped
+      attr_reader transaction_aware: untyped
+
+      def initialize: (scope: untyped, ?position: untyped?, ?transaction_aware: bool) -> void
+      def transaction_aware?: () -> bool
+      def key_for: (untyped event) -> untyped
+      def position_for: (untyped event) -> untyped
+      def to_h: () -> untyped
+
+      private
+
+      def normalize_position: (untyped position) -> untyped
+      def key_components: (untyped event) -> untyped
+    end
+  end
+end

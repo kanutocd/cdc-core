@@ -1,0 +1,25 @@
+module CDC
+  module Core
+    # Observer interface for CDC runtime instrumentation.
+    class Observer
+      METRIC_NAMES: untyped
+
+      def self.metric_tags: (untyped payload) -> untyped
+      def self.started_metric_name: () -> String
+      def self.succeeded_metric_name: () -> String
+      def self.failed_metric_name: () -> String
+      def self.skipped_metric_name: () -> String
+      private
+
+      def self.change_event_metric_tags: (untyped event) -> untyped
+      def self.transaction_envelope_metric_tags: (untyped transaction) -> untyped
+      def self.processor_result_metric_tags: (untyped result) -> untyped
+      def self.batch_metric_tags: (untyped batch) -> untyped
+
+      def dispatch_started: (untyped _event) -> void
+      def dispatch_succeeded: (untyped _result) -> void
+      def dispatch_failed: (untyped _result) -> void
+      def dispatch_skipped: (untyped _result) -> void
+    end
+  end
+end

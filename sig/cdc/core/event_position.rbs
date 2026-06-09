@@ -1,0 +1,21 @@
+module CDC
+  module Core
+    # Immutable representation of an event's position metadata.
+    class EventPosition
+      @strategy: untyped
+      @value: untyped
+      @transaction_id: untyped
+      @sequence_number: untyped
+      @occurred_at: untyped
+
+      attr_reader strategy: untyped
+      attr_reader value: untyped
+      attr_reader transaction_id: untyped
+      attr_reader sequence_number: untyped
+      attr_reader occurred_at: untyped
+
+      def initialize: (strategy: untyped, value: untyped, ?transaction_id: untyped?, ?sequence_number: untyped?, ?occurred_at: untyped?) -> void
+      def to_h: () -> untyped
+    end
+  end
+end

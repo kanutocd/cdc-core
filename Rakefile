@@ -28,13 +28,20 @@ YARD::Rake::YardocTask.new(:yard)
 
 task default: %i[test rubocop yard]
 
-desc 'Generate RBS signatures'
-task :rbs do
-  sh 'rm -rf sig'
-  sh 'bundle exec rbs prototype rb --out-dir=sig --base-dir=lib lib'
-end
 
-desc 'Validate RBS signatures'
-task :rbs_validate do
-  sh 'bundle exec steep check'
+namespace :rbs do
+  desc 'Generate RBS signature files'
+  task :generate do
+    sh 'bundle exec rbs prototype rb --out-dir=sig --base-dir=lib lib'
+  end
+
+  desc "Delete all RBS signature files"
+  task :clobber do
+    sh 'rm -rf sig'
+  end
+
+  desc 'Validate RBS signature files'
+  task :validate do
+    sh 'bundle exec steep check'
+  end
 end
