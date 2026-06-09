@@ -42,6 +42,8 @@ A source adapter turns a source-specific stream, log, API payload, or protocol m
 - `CDC::Core::ProcessorResult`
 - `CDC::Core::Router`
 - `CDC::Core::Pipeline`
+- `CDC::Core::CompositeProcessor`
+- `CDC::Core::ProcessorChain`
 - `CDC::Core::Filter`
 - `CDC::Core::Observer`
 
@@ -272,15 +274,120 @@ end
 
 ### Pipeline
 
-A `CDC::Core::Pipeline` applies processors to events.
-It keeps orchestration small and explicit while allowing more advanced runtime gems to build on top of it later.
+A `CDC::Core::Pipeline` combines filters with one processor.
+
+It is the right primitive when a work item should be skipped unless all filters match. The processor receives the original input only after the filters allow it through.
 
 ```ruby
+users_filter = CDC::Core::Filter.new do |event|
+  event.table == "users"
+end
+
 pipeline = CDC::Core::Pipeline.new(
-  processor: AuditProcessor.new
+  processor: AuditProcessor.new,
+  filters: [users_filter]
 )
 
 pipeline.process(event)
+```
+
+Pipeline shape:
+
+```text
+input
+  -> Filter[]
+  -> Processor
+  -> ProcessorResult
+```
+
+Use this when the workflow question is:
+
+```text
+Should this work item reach this processor?
+```
+
+### CompositeProcessor
+
+A `CDC::Core::CompositeProcessor` fans one input out to many processors.
+
+Each processor receives the same original input. Processor A's result is not fed into Processor B. This makes `CompositeProcessor` suitable for independent side effects such as auditing, metrics, indexing, or notifications.
+
+```ruby
+composite = CDC::Core::CompositeProcessor.new(
+  processors: [
+    AuditProcessor.new,
+    MetricsProcessor.new,
+    SearchIndexProcessor.new
+  ]
+)
+
+result = composite.process(event)
+```
+
+Composite shape:
+
+```text
+input
+  +-> Processor A
+  +-> Processor B
+  +-> Processor C
+  -> aggregate ProcessorResult
+```
+
+Use this when the workflow question is:
+
+```text
+Which independent processors should receive the same input?
+```
+
+### ProcessorChain
+
+A `CDC::Core::ProcessorChain` feeds the successful value from one processor into the next processor.
+
+This is the right primitive when a workflow has dependent stages.
+
+```ruby
+class LoadUsersProcessor < CDC::Core::Processor
+  def process(user_ids)
+    users = User.where(id: user_ids).to_a
+
+    CDC::Core::ProcessorResult.success(users)
+  end
+end
+
+class SendNotificationsProcessor < CDC::Core::Processor
+  def process(users)
+    users.each { |user| NotificationMailer.notice(user).deliver_later }
+
+    CDC::Core::ProcessorResult.success(users.size)
+  end
+end
+
+chain = CDC::Core::ProcessorChain.new(
+  processors: [
+    LoadUsersProcessor.new,
+    SendNotificationsProcessor.new
+  ]
+)
+
+chain.process([1, 2, 3])
+```
+
+Chain shape:
+
+```text
+input
+  -> Processor A
+  -> ProcessorResult.value
+  -> Processor B
+  -> ProcessorResult.value
+  -> Processor C
+```
+
+Use this when the workflow question is:
+
+```text
+What must happen before the next processor can run?
 ```
 
 ### Filter
@@ -295,6 +402,57 @@ end
 
 filter.match?(event)
 ```
+
+### Workflow Composition Example
+
+The primitives can be composed together while keeping the processor contract small.
+
+```text
+ChangeEvent
+  -> Pipeline
+       Filter: users table only
+       Filter: update operation only
+  -> ProcessorChain
+       LoadUsersProcessor
+       CompositeProcessor
+         +-> SendNotificationsProcessor
+         +-> UpdateSearchIndexProcessor
+         +-> EmitMetricsProcessor
+```
+
+One concrete shape:
+
+```ruby
+users_updates = CDC::Core::Pipeline.new(
+  filters: [
+    CDC::Core::Filter.new { |event| event.table == "users" },
+    CDC::Core::Filter.new { |event| event.update? }
+  ],
+  processor: CDC::Core::ProcessorChain.new(
+    processors: [
+      LoadUsersFromEventProcessor.new,
+      CDC::Core::CompositeProcessor.new(
+        processors: [
+          SendNotificationsProcessor.new,
+          UpdateSearchIndexProcessor.new,
+          EmitMetricsProcessor.new
+        ]
+      )
+    ]
+  )
+)
+
+users_updates.process(event)
+```
+
+In this example:
+
+- `Pipeline` decides whether the event belongs in the workflow.
+- `ProcessorChain` passes the loaded users from one stage to the next.
+- `CompositeProcessor` fans the loaded users out to independent side-effect processors.
+- `Filter` keeps routing logic testable and explicit.
+- Every step speaks through `ProcessorResult`.
+
 
 ## Design Principles
 

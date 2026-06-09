@@ -23,6 +23,21 @@ class ProcessorResultTest < Minitest::Test
     assert Ractor.shareable?(result)
   end
 
+  def test_success_result_exposes_value
+    result = CDC::Core::ProcessorResult.success(:input, value: :output)
+
+    assert_equal :input, result.event
+    assert_equal :output, result.value
+  end
+
+  def test_success_result_value_defaults_to_event_for_compatibility
+    object = Object.new
+    result = CDC::Core::ProcessorResult.success(object)
+
+    assert_same object, result.event
+    assert_same object, result.value
+  end
+
   def test_failure
     error = RuntimeError.new('boom')
     result = CDC::Core::ProcessorResult.failure(error, retryable: true, processor: 'AuditProcessor')
@@ -81,6 +96,7 @@ class ProcessorResultTest < Minitest::Test
 
     assert_equal :success, hash['status']
     assert_equal event.to_h, hash['event']
+    assert_equal event.to_h, hash['value']
     assert hash['metadata']['ok']
     assert Ractor.shareable?(hash)
   end

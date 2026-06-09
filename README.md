@@ -15,7 +15,7 @@ Shared Change Data Capture vocabulary for Ruby.
 - Transaction grouping via `TransactionEnvelope`
 - Column-level change objects
 - Ordering vocabulary
-- Processor and composite processor contracts
+- Processor, composite processor, processor chain, and pipeline contracts
 - Event filters
 - Small pipeline orchestration object
 - Router for supported work item shapes
@@ -186,7 +186,23 @@ AnalyticsProcessor.new.ractor_safe?
 
 This declares intent only. `cdc-core` does not execute processors in Ractors. `cdc-parallel` can use this signal before moving processor work across Ractors.
 
-## Composite Processor
+## Downstream Workflow Primitives
+
+`cdc-core` defines three small workflow primitives. Runtime gems and
+application-specific integrations can execute these primitives without
+inventing their own composition vocabulary.
+
+### CompositeProcessor
+
+Use `CompositeProcessor` when many independent processors should receive the
+same input.
+
+```text
+event
+  ├─ AuditProcessor
+  ├─ AnalyticsProcessor
+  └─ WebhookProcessor
+```
 
 ```ruby
 processor = CDC::Core::CompositeProcessor.new([
@@ -197,7 +213,17 @@ processor = CDC::Core::CompositeProcessor.new([
 results = processor.process(event)
 ```
 
-## Filters and Pipeline
+### Pipeline
+
+Use `Pipeline` when one processor should run only after filters match.
+
+```text
+event
+  ↓
+filters
+  ↓
+processor
+```
 
 ```ruby
 pipeline = CDC::Core::Pipeline.new(
@@ -209,6 +235,46 @@ pipeline = CDC::Core::Pipeline.new(
 )
 
 result = pipeline.process(event)
+```
+
+### ProcessorChain
+
+Use `ProcessorChain` when each processor depends on the previous processor's
+successful value.
+
+```text
+user_ids
+  ↓
+LoadUsersProcessor
+  ↓
+users
+  ↓
+SendNotificationsProcessor
+```
+
+```ruby
+class LoadUsersProcessor < CDC::Core::Processor
+  def process(user_ids)
+    users = User.where(id: user_ids).to_a
+    CDC::Core::ProcessorResult.success(user_ids, value: users)
+  end
+end
+
+class SendNotificationsProcessor < CDC::Core::Processor
+  def process(users)
+    users.each { |user| NotificationMailer.notice(user).deliver_later }
+    CDC::Core::ProcessorResult.success(users, value: users.size)
+  end
+end
+
+chain = CDC::Core::ProcessorChain.new([
+  LoadUsersProcessor.new,
+  SendNotificationsProcessor.new
+])
+
+result = chain.process([1, 2, 3])
+result.value
+# => 3
 ```
 
 ## Non-goals

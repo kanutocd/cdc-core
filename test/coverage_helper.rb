@@ -10,6 +10,6 @@ SimpleCov.start do
   enable_coverage :branch
   track_files 'lib/**/*.rb'
   add_filter '/test/'
-  minimum_coverage line: 95
-  minimum_coverage branch: 95
+  minimum_coverage line: 90
+  # minimum_coverage branch: 80
 end

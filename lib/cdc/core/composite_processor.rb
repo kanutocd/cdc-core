@@ -2,11 +2,12 @@
 
 module CDC
   module Core
-    # Processor that delegates each event to multiple processors.
+    # Fan-out processor that delegates the same input to multiple processors.
     #
-    # CompositeProcessor enables fan-out processing while preserving a simple
-    # sequential execution model. It normalizes truthy/falsey processor returns
-    # into ProcessorResult objects and can stop at the first failure.
+    # CompositeProcessor is for independent downstream side effects. Every
+    # configured processor receives the same input, and their results are
+    # collected independently. Use ProcessorChain when Processor B must receive
+    # Processor A's output.
     class CompositeProcessor < Processor
       # @return [Array<Processor>] processors executed for each event
       # @return [Boolean] whether processing stops on the first failure

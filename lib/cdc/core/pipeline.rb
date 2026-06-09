@@ -2,11 +2,12 @@
 
 module CDC
   module Core
-    # Connects filters with a processor to form an event-processing unit.
+    # Connects filters with one processor to form a guarded processing unit.
     #
-    # A Pipeline first evaluates all filters. Matching events are handed to the
-    # processor, while filtered events produce skipped results. Processor errors
-    # are captured as failure results instead of escaping to the caller.
+    # A Pipeline evaluates all filters before invoking its processor. Matching
+    # inputs are processed, while filtered inputs produce skipped results. Use
+    # CompositeProcessor for fan-out to many processors and ProcessorChain for
+    # dependent step-by-step workflows.
     class Pipeline
       # @return [#process] processor invoked for matching events
       # @return [Array<Filter>] filters that must all match before processing

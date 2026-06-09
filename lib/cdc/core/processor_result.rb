@@ -12,17 +12,19 @@ module CDC
       VALID_STATUSES = Ractor.make_shareable(%i[success failure skipped].freeze)
 
       # @return [Symbol] result status
-      # @return [ChangeEvent, nil] event associated with the result
+      # @return [ChangeEvent, Object, nil] event or input associated with the result
+      # @return [Object, nil] value produced by the processor
       # @return [Exception, nil] failure error, when status is :failure
       # @return [EventMetadata] result metadata
-      attr_reader :status, :event, :error, :metadata
+      attr_reader :status, :event, :value, :error, :metadata
 
       # Build a successful result.
       #
       # @param event [ChangeEvent, nil] processed event
       # @param metadata [Hash, EventMetadata] result metadata
+      # @param value [Object, nil] value produced by the processor; defaults to event for compatibility
       # @return [ProcessorResult]
-      def self.success(event = nil, metadata: {}) = new(:success, event:, metadata:)
+      def self.success(event = nil, metadata: {}, value: event) = new(:success, event:, metadata:, value:)
 
       # Build a failure result.
       #
@@ -60,12 +62,14 @@ module CDC
       # @param event [ChangeEvent, nil] associated event
       # @param error [Exception, nil] associated failure
       # @param metadata [Hash, EventMetadata] result metadata
-      def initialize(status, event: nil, error: nil, metadata: {})
+      # @param value [Object, nil] value produced by the processor
+      def initialize(status, event: nil, error: nil, metadata: {}, value: event)
         @status = normalize_status(status)
         @event = event
+        @value = value
         @error = error
         @metadata = metadata.is_a?(EventMetadata) ? metadata : EventMetadata.new(metadata)
-        Ractor.make_shareable(self) unless error
+        make_shareable_when_possible
       end
 
       # @return [Boolean] true when status is :success
@@ -132,7 +136,8 @@ module CDC
       def to_h
         payload = {
           'status' => status,
-          'event' => event&.to_h,
+          'event' => event.respond_to?(:to_h) ? event.to_h : event,
+          'value' => value.respond_to?(:to_h) ? value.to_h : value,
           'error_class' => error_class,
           'error_message' => error_message,
           'error_backtrace' => error_backtrace,
@@ -143,6 +148,16 @@ module CDC
       end
 
       private
+
+      def make_shareable_when_possible
+        Ractor.make_shareable(self) unless error
+      rescue Ractor::Error, TypeError
+        # ProcessorResult may carry application-specific values such as ActiveRecord
+        # result sets. Those values are valid in sequential/fiber runtimes even when
+        # they cannot be shared with Ractors. Ractor runtimes remain responsible for
+        # validating shareability at their boundary.
+        self
+      end
 
       def normalize_status(status)
         value = status.to_sym

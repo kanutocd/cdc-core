@@ -129,7 +129,7 @@ class CoverageEdgesTest < Minitest::Test
     hash = CDC::Core::ProcessorResult.success.to_h
 
     assert_equal :success, hash['status']
-    assert_nil hash['event']
+    assert_empty hash['event'], 'NilClass#to_h implentation is an empty Hash'
   end
 
   def test_observer_metric_tags_for_unknown_payload_and_result_without_optional_tags

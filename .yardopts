@@ -1,10 +1,10 @@
 --title "cdc-core API Documentation"
---readme docs/.md
+--readme docs/INDEX.md
 --markup markdown
 --output-dir doc
 lib/**/*.rb
 -
-docs/**/*.md
+docs/ARCHITECTURE.md
 README.md
 LICENSE.txt
 CHANGELOG.md

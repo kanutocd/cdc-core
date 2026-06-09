@@ -219,6 +219,7 @@ Router
 Processor
 Pipeline
 CompositeProcessor
+ProcessorChain
 ProcessorResult
 Filter
 Observer
@@ -249,8 +250,28 @@ Router
 
 ProcessorResult
    |-- success / skipped / failure
+   |-- value payload for chained processors
    |-- structured failure metadata
    |-- shareable projection
+
+Pipeline
+   |-- filters[]
+   |-- one processor
+   |-- skip when a filter does not match
+
+CompositeProcessor
+   |-- processors[]
+   |-- same input fan-out
+   |-- aggregate processor results
+
+ProcessorChain
+   |-- processors[]
+   |-- output of step N feeds step N+1
+   |-- stop on failure or skipped result
+
+Filter
+   |-- match?
+   |-- block or subclass predicate
 
 Observer
    |-- lifecycle notifications
@@ -282,7 +303,7 @@ The names on the right are the canonical surface used by the current CDC model. 
 source adapter
     -> ChangeEvent
     -> Filter
-    -> Processor/Pipeline
+    -> Processor / Pipeline / CompositeProcessor / ProcessorChain
     -> ProcessorResult
     -> Observer
 ```
@@ -307,6 +328,96 @@ source adapter
     -> ordered results
     -> structured failures when needed
 ```
+
+### Workflow Primitives
+
+`cdc-core` exposes three small processor composition shapes. They are intentionally distinct so downstream runtimes and application code can reason about dependencies clearly.
+
+```text
+Pipeline
+    filters + one processor
+
+CompositeProcessor
+    one input -> many processors
+
+ProcessorChain
+    processor A result -> processor B input
+```
+
+#### Pipeline: filters plus one processor
+
+Use `Pipeline` when a work item should pass through one or more filters before a single processor runs.
+
+```text
+ChangeEvent
+    -> Filter[]
+    -> Processor
+    -> ProcessorResult
+```
+
+A pipeline is useful for table-specific, operation-specific, tenant-specific, or metadata-specific processing where skipped events should be represented as normalized `ProcessorResult` values.
+
+#### CompositeProcessor: same input fan-out
+
+Use `CompositeProcessor` when multiple independent processors should receive the same input.
+
+```text
+ChangeEvent
+    +-> AuditProcessor
+    +-> MetricsProcessor
+    +-> SearchProcessor
+```
+
+A composite is useful when processors do not depend on each other's output. Because each processor receives the same work item, downstream runtimes can later decide whether to execute the fan-out sequentially, concurrently, or in parallel.
+
+#### ProcessorChain: result-fed sequential workflow
+
+Use `ProcessorChain` when each step depends on the previous step's successful value.
+
+```text
+input
+    -> Processor A
+    -> ProcessorResult.value
+    -> Processor B
+    -> ProcessorResult.value
+    -> Processor C
+```
+
+A chain is useful for staged workflows such as load records, transform records, then deliver side effects. It should stop on failure or skipped results so dependent processors do not receive invalid input.
+
+### How The Workflow Primitives Can Dance Together
+
+A downstream runtime or application can compose the primitives without changing the processor contract.
+
+```text
+ChangeEvent
+    |
+    v
+Pipeline
+    |-- Filter: only users table
+    |-- Filter: only update operations
+    |
+    v
+ProcessorChain
+    |
+    +--> LoadAffectedUsersProcessor
+    |       input: ChangeEvent
+    |       value: users[]
+    |
+    +--> CompositeProcessor
+            input: users[]
+            +--> SendNotificationsProcessor
+            +--> UpdateSearchIndexProcessor
+            +--> EmitMetricsProcessor
+```
+
+In this shape:
+
+- `Pipeline` decides whether the event should be processed.
+- `ProcessorChain` models dependency between workflow stages.
+- `CompositeProcessor` fans out independent side effects that share the same intermediate value.
+- Every stage still returns a `ProcessorResult`.
+
 
 ### CPU-Bound Runtime Path
 
@@ -444,6 +555,9 @@ The exact process layout depends on the source adapter, runtime gem, and deploym
 - `TransactionEnvelope`: a transaction-sized bundle of events
 - `OrderingPolicy`: the ordering vocabulary
 - `Router`: a dispatcher for supported work item shapes
+- `Pipeline`: filters plus one processor
+- `CompositeProcessor`: fan-out composition where many processors receive the same input
+- `ProcessorChain`: sequential composition where one processor's successful value feeds the next processor
 - `ProcessorResult`: the normalized outcome of processor execution
 - `Observer`: the instrumentation hook surface
 - `cdc-parallel`: downstream runtime for heavy CPU-bound processing

@@ -11,6 +11,8 @@ module CDC
 
       @event: untyped
 
+      @value: untyped
+
       @error: untyped
 
       @metadata: untyped
@@ -26,6 +28,9 @@ module CDC
       # @return [Exception, nil] failure error, when status is :failure
       # @return [EventMetadata] result metadata
       attr_reader event: untyped
+
+      # @return [Object, nil] value produced by the processor
+      attr_reader value: untyped
 
       # @return [Symbol] result status
       # @return [ChangeEvent, nil] event associated with the result
@@ -44,7 +49,7 @@ module CDC
       # @param event [ChangeEvent, nil] processed event
       # @param metadata [Hash, EventMetadata] result metadata
       # @return [ProcessorResult]
-      def self.success: (?untyped? event, ?metadata: ::Hash[untyped, untyped]) -> untyped
+      def self.success: (?untyped? event, ?metadata: ::Hash[untyped, untyped], ?value: untyped?) -> untyped
 
       # Build a failure result.
       #
@@ -71,7 +76,7 @@ module CDC
       # @param event [ChangeEvent, nil] associated event
       # @param error [Exception, nil] associated failure
       # @param metadata [Hash, EventMetadata] result metadata
-      def initialize: (untyped status, ?event: untyped?, ?error: untyped?, ?metadata: ::Hash[untyped, untyped]) -> void
+      def initialize: (untyped status, ?event: untyped?, ?error: untyped?, ?metadata: ::Hash[untyped, untyped], ?value: untyped?) -> void
 
       # @return [Boolean] true when status is :success
       def success?: () -> untyped
@@ -123,6 +128,8 @@ module CDC
       def to_h: () -> untyped
 
       private
+
+      def make_shareable_when_possible: () -> untyped
 
       def normalize_status: (untyped status) -> untyped
     end

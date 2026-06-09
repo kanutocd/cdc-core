@@ -49,6 +49,32 @@ class CompositeProcessorTest < Minitest::Test
     assert results.all?(&:success?)
   end
 
+  # rubocop:disable Metrics/AbcSize
+  # rubocop:disable Metrics/MethodLength
+  def test_composite_processor_passes_same_event_to_each_processor
+    seen = []
+    first = Class.new(CDC::Core::Processor) do
+      define_method(:process) do |event|
+        seen << [:first, event.object_id]
+        CDC::Core::ProcessorResult.success(event, value: :first_value)
+      end
+    end.new
+    second = Class.new(CDC::Core::Processor) do
+      define_method(:process) do |event|
+        seen << [:second, event.object_id]
+        CDC::Core::ProcessorResult.success(event, value: :second_value)
+      end
+    end.new
+
+    original_event = event
+    results = CDC::Core::CompositeProcessor.new([first, second]).process(original_event)
+
+    assert_equal [[:first, original_event.object_id], [:second, original_event.object_id]], seen
+    assert_equal %i[first_value second_value], results.map(&:value)
+  end
+  # rubocop:enable Metrics/AbcSize
+  # rubocop:enable Metrics/MethodLength
+
   def test_fail_fast
     processor = CDC::Core::CompositeProcessor.new([FailureProcessor.new, SuccessProcessor.new], fail_fast: true)
 

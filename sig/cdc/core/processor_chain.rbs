@@ -1,0 +1,45 @@
+module CDC
+  module Core
+    # Sequential processor workflow where each successful result feeds the next processor.
+    class ProcessorChain < Processor
+      @processors: untyped
+      @observer: untyped
+
+      # @return [Array<#process>] processors executed in dependency order
+      attr_reader processors: untyped
+
+      # @return [Observer] observer notified of dispatch events
+      attr_reader observer: untyped
+
+      # Build a processor chain.
+      #
+      # @param processors [Array<#process>] processors executed in dependency order
+      # @param observer [Observer, nil] instrumentation observer for each processor result
+      def initialize: (untyped processors, ?observer: untyped?) -> void
+
+      # Process one input through each processor in sequence.
+      #
+      # @param input [Object] initial input for the first processor
+      # @return [ProcessorResult] final processor result or the first failed/skipped result
+      def process: (untyped input) -> untyped
+
+      # Process many inputs in order.
+      #
+      # @param inputs [Enumerable<Object>] inputs to process through the chain
+      # @return [Array<ProcessorResult>] final result for each input
+      def process_many: (untyped inputs) -> untyped
+
+      private
+
+      # Normalize processor return values into ProcessorResult objects.
+      #
+      # @param result [Object] raw processor result
+      # @param input [Object] input given to the processor
+      # @return [ProcessorResult] normalized result
+      def normalize_result: (untyped result, untyped input) -> untyped
+
+      def process_with: (untyped processor, untyped input) -> untyped
+      def observe_result: (untyped result) -> untyped
+    end
+  end
+end
