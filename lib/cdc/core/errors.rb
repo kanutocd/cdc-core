@@ -8,6 +8,15 @@ module CDC
     # Raised when an operation cannot be normalized to a supported CDC action.
     class InvalidOperationError < Error; end
 
+    # Raised when an ordering scope cannot be normalized to a supported value.
+    class InvalidOrderingScopeError < Error; end
+
+    # Raised when an ordering position cannot be normalized to a supported value.
+    class InvalidOrderingPositionError < Error; end
+
+    # Raised when a router receives an unsupported CDC work item.
+    class UnsupportedWorkItemError < Error; end
+
     # Raised by processors when a processor-specific failure needs wrapping.
     class ProcessorError < Error; end
   end
