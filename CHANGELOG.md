@@ -1,5 +1,10 @@
 ## [Unreleased]
 
+## [0.1.2] - 2026-06-10
+
+- Added `CDC::Core::ProcessorChain` that feeds the successful value from one processor into the next processor
+- Updated and enriched the API and Architecture documenation
+
 ## [0.1.1] - 2026-06-09
 
 ### Added
