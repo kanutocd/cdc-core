@@ -42,7 +42,10 @@ module CDC
       def key_for(event)
         return nil if scope == OrderingScope::NONE
 
-        OrderingKey.new(scope: scope, components: key_components(event))
+        components = key_components(event)
+        return nil if components.nil?
+
+        OrderingKey.new(scope: scope, components: components)
       end
 
       # Derive an event position for an event.
@@ -92,15 +95,13 @@ module CDC
       def key_components(event)
         case scope
         when OrderingScope::GLOBAL
-          {}
+          {} # : Hash[untyped, untyped]
         when OrderingScope::TRANSACTION
           { transaction_id: event.transaction_id }
         when OrderingScope::RELATION
           { schema: event.schema, table: event.table }
         when OrderingScope::PRIMARY_KEY
           { schema: event.schema, table: event.table, primary_key: event.primary_key }
-        else
-          raise InvalidOrderingScopeError, "unsupported CDC ordering scope: #{scope.inspect}"
         end
       end
     end

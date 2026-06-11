@@ -41,14 +41,14 @@ module CDC
       #
       # @return [Array<Processor>]
       def ractor_safe_processors
-        processors.select { |processor| processor.ractor_safe? }.freeze
+        processors.select(&:ractor_safe?).freeze
       end
 
       # Processors that should remain sequential in the core runtime.
       #
       # @return [Array<Processor>]
       def sequential_processors
-        processors.reject { |processor| processor.ractor_safe? }.freeze
+        processors.reject(&:ractor_safe?).freeze
       end
 
       private

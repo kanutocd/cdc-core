@@ -16,8 +16,7 @@ module CDC
       private
 
       def normalize_position: (Symbol | String position) -> Symbol
-      def key_components: (ChangeEvent event) -> metadata_hash
+      def key_components: (ChangeEvent event) -> metadata_hash?
     end
   end
 end
-
