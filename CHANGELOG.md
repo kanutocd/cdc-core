@@ -1,5 +1,19 @@
 ## [Unreleased]
 
+## [0.1.3] - 2026-06-11
+
+### Added
+
+- Added generated API documentation badges and deployment-safe documentation links.
+
+### Fixed
+
+- Fixed RBS validation issues and warnings across core signatures and typed metadata defaults.
+- Fixed edge-case ordering policy behavior for unknown internal scopes.
+- Corrected README and docs examples for current processor composition constructors.
+- Improved YARD tag descriptions across core API comments.
+- Polished API and architecture documentation wording, links, and Ruby snippet style.
+
 ## [0.1.2] - 2026-06-10
 
 - Added `CDC::Core::ProcessorChain` that feeds the successful value from one processor into the next processor
