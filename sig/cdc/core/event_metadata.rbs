@@ -1,50 +1,18 @@
 module CDC
   module Core
-    # Immutable metadata container for CDC domain objects.
-    #
-    # Metadata keys are normalized to frozen strings. Nested hashes and arrays
-    # are recursively converted into Ractor-shareable objects. Values that Ruby
-    # cannot make shareable are stored as frozen #inspect strings.
     class EventMetadata
-      @data: untyped
+      EMPTY_DATA: metadata_hash
 
-      # @return [Hash{String=>Object}] normalized metadata
-      attr_reader data: untyped
+      attr_reader data: shareable_hash
 
-      # Build metadata from a hash-like structure.
-      #
-      # @param data [Hash] metadata values
-      def initialize: (?::Hash[untyped, untyped] data) -> void
-
-      # Fetch a metadata value by string or symbol key.
-      #
-      # @param key [String, Symbol] metadata key
-      # @return [Object, nil]
-      def []: (untyped key) -> untyped
-
-      # Return the normalized Ractor-shareable hash.
-      #
-      # @return [Hash{String=>Object}]
-      def to_h: () -> untyped
+      def initialize: (?metadata_hash data) -> void
+      def []: (String | Symbol key) -> untyped
+      def to_h: () -> shareable_hash
 
       private
 
-      # Recursively normalize and freeze a hash.
-      #
-      # @param hash [Hash]
-      # @return [Hash{String=>Object}]
-      def deep_shareable_hash: (untyped hash) -> untyped
-
-      # Normalize metadata keys to frozen strings.
-      #
-      # @param key [Object]
-      # @return [String]
-      def normalize_key: (untyped key) -> untyped
-
-      # Normalize a metadata value into a shareable representation.
-      #
-      # @param value [Object]
-      # @return [Object]
+      def deep_shareable_hash: (metadata_hash hash) -> shareable_hash
+      def normalize_key: (untyped key) -> String
       def normalize_value: (untyped value) -> untyped
     end
   end

@@ -10,6 +10,10 @@ module CDC
     class ProcessorResult
       # Allowed result statuses.
       VALID_STATUSES = Ractor.make_shareable(%i[success failure skipped].freeze)
+      EMPTY_METADATA = Ractor.make_shareable(
+        {} # : Hash[untyped, untyped]
+          .freeze
+      )
 
       # @return [Symbol] result status
       # @return [ChangeEvent, Object, nil] event or input associated with the result
@@ -24,7 +28,7 @@ module CDC
       # @param metadata [Hash, EventMetadata] result metadata
       # @param value [Object, nil] value produced by the processor; defaults to event for compatibility
       # @return [ProcessorResult]
-      def self.success(event = nil, metadata: {}, value: event) = new(:success, event:, metadata:, value:)
+      def self.success(event = nil, metadata: EMPTY_METADATA, value: event) = new(:success, event:, metadata:, value:)
 
       # Build a failure result.
       #
@@ -54,7 +58,7 @@ module CDC
       # @param event [ChangeEvent, nil] skipped event
       # @param metadata [Hash, EventMetadata] result metadata
       # @return [ProcessorResult]
-      def self.skipped(event = nil, metadata: {}) = new(:skipped, event:, metadata:)
+      def self.skipped(event = nil, metadata: EMPTY_METADATA) = new(:skipped, event:, metadata:)
 
       # Build a processor result with an explicit status.
       #
@@ -63,7 +67,7 @@ module CDC
       # @param error [Exception, nil] associated failure
       # @param metadata [Hash, EventMetadata] result metadata
       # @param value [Object, nil] value produced by the processor
-      def initialize(status, event: nil, error: nil, metadata: {}, value: event)
+      def initialize(status, event: nil, error: nil, metadata: EMPTY_METADATA, value: event)
         @status = normalize_status(status)
         @event = event
         @value = value

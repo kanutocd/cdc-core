@@ -1,55 +1,16 @@
 module CDC
   module Core
-    # Represents a single column-level value change.
-    #
-    # ColumnChange is immutable and Ractor-shareable. Values that cannot be made
-    # shareable by Ruby are represented by their frozen #inspect string so the
-    # enclosing event can still cross Ractor boundaries safely.
     class ColumnChange
-      @name: untyped
-
-      @old_value: untyped
-
-      @new_value: untyped
-
-      # @return [String] column name
-      # @return [Object, nil] value before the change
-      # @return [Object, nil] value after the change
-      attr_reader name: untyped
-
-      # @return [String] column name
-      # @return [Object, nil] value before the change
-      # @return [Object, nil] value after the change
+      attr_reader name: String
       attr_reader old_value: untyped
-
-      # @return [String] column name
-      # @return [Object, nil] value before the change
-      # @return [Object, nil] value after the change
       attr_reader new_value: untyped
 
-      # Build a column-level change object.
-      #
-      # @param name [#to_s] column name
-      # @param old_value [Object, nil] previous value
-      # @param new_value [Object, nil] new value
-      def initialize: (name: untyped, old_value: untyped, new_value: untyped) -> void
-
-      # Whether the old and new values differ.
-      #
-      # @return [Boolean]
-      def changed?: () -> untyped
-
-      # Convert the change into a Ractor-shareable hash.
-      #
-      # @return [Hash{String=>Object,nil}]
-      def to_h: () -> untyped
+      def initialize: (name: String | Symbol, old_value: untyped, new_value: untyped) -> void
+      def changed?: () -> bool
+      def to_h: () -> shareable_hash
 
       private
 
-      # Convert a value into a Ractor-shareable representation.
-      #
-      # @param value [Object, nil]
-      # @return [Object, String, nil]
       def make_value_shareable: (untyped value) -> untyped
     end
   end

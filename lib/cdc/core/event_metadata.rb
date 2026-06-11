@@ -8,13 +8,18 @@ module CDC
     # are recursively converted into Ractor-shareable objects. Values that Ruby
     # cannot make shareable are stored as frozen #inspect strings.
     class EventMetadata
+      EMPTY_DATA = Ractor.make_shareable(
+        {} # : Hash[untyped, untyped]
+          .freeze
+      )
+
       # @return [Hash{String=>Object}] normalized metadata
       attr_reader :data
 
       # Build metadata from a hash-like structure.
       #
       # @param data [Hash] metadata values
-      def initialize(data = {})
+      def initialize(data = EMPTY_DATA)
         @data = deep_shareable_hash(data)
         Ractor.make_shareable(self)
       end

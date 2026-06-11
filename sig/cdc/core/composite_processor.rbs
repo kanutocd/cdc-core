@@ -1,64 +1,21 @@
 module CDC
   module Core
-    # Processor that delegates each event to multiple processors.
-    #
-    # CompositeProcessor enables fan-out processing while preserving a simple
-    # sequential execution model. It normalizes truthy/falsey processor returns
-    # into ProcessorResult objects and can stop at the first failure.
     class CompositeProcessor < Processor
-      @processors: untyped
+      attr_reader processors: ::Array[_ProcessorLike]
+      attr_reader fail_fast: bool
+      attr_reader observer: Observer
 
-      @fail_fast: untyped
-
-      @observer: untyped
-
-      # @return [Array<Processor>] processors executed for each event
-      # @return [Boolean] whether processing stops on the first failure
-      attr_reader processors: untyped
-
-      # @return [Array<Processor>] processors executed for each event
-      # @return [Boolean] whether processing stops on the first failure
-      attr_reader fail_fast: untyped
-
-      # @return [Observer] observer notified of dispatch events
-      attr_reader observer: untyped
-
-      # Build a composite processor.
-      #
-      # @param processors [Array<#process>] processors to execute
-      # @param fail_fast [Boolean] whether to stop after the first failure
-      # @param observer [Observer, nil] instrumentation observer
-      def initialize: (untyped processors, ?fail_fast: bool, ?observer: untyped?) -> void
-
-      # Process an event through each configured processor.
-      #
-      # @param event [ChangeEvent] event to process
-      # @return [Array<ProcessorResult>] result from each attempted processor
-      def process: (untyped event) -> untyped
-
-      # Processors that declared Ractor safety.
-      #
-      # @return [Array<Processor>]
-      def ractor_safe_processors: () -> untyped
-
-      # Processors that should remain sequential in the core runtime.
-      #
-      # @return [Array<Processor>]
-      def sequential_processors: () -> untyped
+      def initialize: (::Array[_ProcessorLike] processors, ?fail_fast: bool, ?observer: Observer?) -> void
+      def process: (untyped event) -> ::Array[ProcessorResult]
+      def ractor_safe_processors: () -> ::Array[_ProcessorLike]
+      def sequential_processors: () -> ::Array[_ProcessorLike]
 
       private
 
-      # Normalize processor return values into ProcessorResult objects.
-      #
-      # @param result [Object] raw processor result
-      # @param event [ChangeEvent] processed event
-      # @return [ProcessorResult]
-      def normalize_result: (untyped result, untyped event) -> untyped
-
-      def collect_results: (untyped event) -> untyped
-      def process_with: (untyped processor, untyped event) -> untyped
-      def observe_results: (untyped results) -> untyped
-      def freeze_results: (untyped results) -> untyped
+      def normalize_result: (untyped result, untyped event) -> ProcessorResult
+      def collect_results: (untyped event) -> ::Array[ProcessorResult]
+      def process_with: (_ProcessorLike processor, untyped event) -> ProcessorResult
+      def observe_results: (::Array[ProcessorResult] results) -> void
     end
   end
 end

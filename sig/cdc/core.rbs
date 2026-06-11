@@ -1,11 +1,32 @@
-# Top-level namespace for Change Data Capture libraries.
 module CDC
-  # Database-agnostic Change Data Capture domain primitives.
-  #
-  # CDC::Core intentionally contains only lightweight runtime abstractions:
-  # events, metadata, processors, filters, pipelines, and processor results.
-  # Transport, PostgreSQL protocol parsing, and value decoding live in sibling
-  # gems so this layer can remain independently useful.
   module Core
+    type metadata_hash = ::Hash[untyped, untyped]
+    type metric_tags = ::Hash[String, untyped]
+    type shareable_hash = ::Hash[untyped, untyped]
+    type event_values = ::Hash[String, untyped]
+    type core_object = ChangeEvent | TransactionEnvelope
+    type normalized_object = ChangeEvent | TransactionEnvelope | ::Array[ChangeEvent] | ::Array[TransactionEnvelope]
+    type work_item = ChangeEvent | TransactionEnvelope | ::Array[ChangeEvent]
+
+    interface _ProcessorLike
+      def class: () -> singleton(::Object)
+      def respond_to?: (Symbol | String method_name, ?bool include_private) -> bool
+      def ractor_safe?: () -> bool
+      def process: (untyped input) -> untyped
+    end
+
+    interface _RoutableProcessor
+      def class: () -> singleton(::Object)
+      def respond_to?: (Symbol | String method_name, ?bool include_private) -> bool
+      def process: (untyped input) -> untyped
+      def process_many: (::Array[untyped] inputs) -> untyped
+    end
+    interface _BatchProcessorLike
+      def process_many: (::Enumerable[untyped] inputs) -> untyped
+    end
+
+    interface _FilterLike
+      def match?: (ChangeEvent event) -> bool
+    end
   end
 end

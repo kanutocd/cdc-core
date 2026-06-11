@@ -1,137 +1,44 @@
 module CDC
   module Core
-    # Result returned by processors and pipelines.
-    #
-    # ProcessorResult standardizes processor outcomes so callers can distinguish
-    # successful processing, skipped events, and failures without relying on
-    # processor-specific return values.
     class ProcessorResult
-      VALID_STATUSES: untyped
-      @status: untyped
+      VALID_STATUSES: ::Array[Symbol]
+      EMPTY_METADATA: metadata_hash
 
-      @event: untyped
-
-      @value: untyped
-
-      @error: untyped
-
-      @metadata: untyped
-
-      # @return [Symbol] result status
-      # @return [ChangeEvent, nil] event associated with the result
-      # @return [Exception, nil] failure error, when status is :failure
-      # @return [EventMetadata] result metadata
-      attr_reader status: untyped
-
-      # @return [Symbol] result status
-      # @return [ChangeEvent, nil] event associated with the result
-      # @return [Exception, nil] failure error, when status is :failure
-      # @return [EventMetadata] result metadata
+      attr_reader status: Symbol
       attr_reader event: untyped
-
-      # @return [Object, nil] value produced by the processor
       attr_reader value: untyped
+      attr_reader error: ::Exception?
+      attr_reader metadata: EventMetadata
 
-      # @return [Symbol] result status
-      # @return [ChangeEvent, nil] event associated with the result
-      # @return [Exception, nil] failure error, when status is :failure
-      # @return [EventMetadata] result metadata
-      attr_reader error: untyped
+      def self.success: (?untyped event, ?metadata: EventMetadata | metadata_hash, ?value: untyped) -> ProcessorResult
+      def self.failure: (
+        ::Exception error,
+        ?event: untyped,
+        ?reason: String?,
+        ?retryable: bool?,
+        ?processor: String?,
+        ?failed_at: String?,
+        ?metadata: EventMetadata | metadata_hash?
+      ) -> ProcessorResult
+      def self.skipped: (?untyped event, ?metadata: EventMetadata | metadata_hash) -> ProcessorResult
 
-      # @return [Symbol] result status
-      # @return [ChangeEvent, nil] event associated with the result
-      # @return [Exception, nil] failure error, when status is :failure
-      # @return [EventMetadata] result metadata
-      attr_reader metadata: untyped
-
-      # Build a successful result.
-      #
-      # @param event [ChangeEvent, nil] processed event
-      # @param metadata [Hash, EventMetadata] result metadata
-      # @return [ProcessorResult]
-      def self.success: (?untyped? event, ?metadata: ::Hash[untyped, untyped], ?value: untyped?) -> untyped
-
-      # Build a failure result.
-      #
-      # @param error [Exception] processor error
-      # @param event [ChangeEvent, nil] event being processed
-      # @param reason [String, nil] human-readable failure reason
-      # @param retryable [Boolean, nil] whether the failure can be retried
-      # @param processor [String, nil] processor name associated with the failure
-      # @param failed_at [String, nil] timestamp for when the failure occurred
-      # @param metadata [Hash, EventMetadata] result metadata
-      # @return [ProcessorResult]
-      def self.failure: (untyped error, ?event: untyped?, ?reason: untyped?, ?retryable: untyped?, ?processor: untyped?, ?failed_at: untyped?, ?metadata: untyped) -> untyped
-
-      # Build a skipped result.
-      #
-      # @param event [ChangeEvent, nil] skipped event
-      # @param metadata [Hash, EventMetadata] result metadata
-      # @return [ProcessorResult]
-      def self.skipped: (?untyped? event, ?metadata: ::Hash[untyped, untyped]) -> untyped
-
-      # Build a processor result with an explicit status.
-      #
-      # @param status [#to_sym] result status
-      # @param event [ChangeEvent, nil] associated event
-      # @param error [Exception, nil] associated failure
-      # @param metadata [Hash, EventMetadata] result metadata
-      def initialize: (untyped status, ?event: untyped?, ?error: untyped?, ?metadata: ::Hash[untyped, untyped], ?value: untyped?) -> void
-
-      # @return [Boolean] true when status is :success
-      def success?: () -> untyped
-
-      # @return [Boolean] true when status is :failure
-      def failure?: () -> untyped
-
-      # @return [Boolean] true when status is :skipped
-      def skipped?: () -> untyped
-
-      # Human-readable failure reason, when present.
-      #
-      # @return [String, nil]
-      def failure_reason: () -> untyped
-
-      # Whether the failure is retryable.
-      #
-      # @return [Boolean]
+      def initialize: (Symbol | String status, ?event: untyped, ?error: ::Exception?, ?metadata: EventMetadata | metadata_hash, ?value: untyped) -> void
+      def success?: () -> bool
+      def failure?: () -> bool
+      def skipped?: () -> bool
+      def failure_reason: () -> String?
       def retryable?: () -> bool
-
-      # Name of the processor associated with the failure, when present.
-      #
-      # @return [String, nil]
-      def processor_name: () -> untyped
-
-      # Timestamp for when the failure occurred, when present.
-      #
-      # @return [String, nil]
-      def failed_at: () -> untyped
-
-      # Error class name, when present.
-      #
-      # @return [String, nil]
-      def error_class: () -> untyped
-
-      # Error message, when present.
-      #
-      # @return [String, nil]
-      def error_message: () -> untyped
-
-      # Error backtrace, when present.
-      #
-      # @return [Array<String>]
-      def error_backtrace: () -> untyped
-
-      # Convert the result into a shareable hash.
-      #
-      # @return [Hash{String=>Object,nil}]
-      def to_h: () -> untyped
+      def processor_name: () -> String?
+      def failed_at: () -> String?
+      def error_class: () -> String?
+      def error_message: () -> String?
+      def error_backtrace: () -> ::Array[String]
+      def to_h: () -> shareable_hash
 
       private
-
-      def make_shareable_when_possible: () -> untyped
-
-      def normalize_status: (untyped status) -> untyped
+      
+      def make_shareable_when_possible: () -> self?
+      def normalize_status: (Symbol | String status) -> Symbol
     end
   end
 end

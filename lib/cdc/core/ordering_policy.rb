@@ -99,6 +99,8 @@ module CDC
           { schema: event.schema, table: event.table }
         when OrderingScope::PRIMARY_KEY
           { schema: event.schema, table: event.table, primary_key: event.primary_key }
+        else
+          raise InvalidOrderingScopeError, "unsupported CDC ordering scope: #{scope.inspect}"
         end
       end
     end

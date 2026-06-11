@@ -102,14 +102,19 @@ module CDC
       end
 
       private_class_method def self.processor_result_metric_tags(result)
-        {
+        tags = {
           'kind' => 'processor_result',
           'status' => result.status,
           'retryable' => result.retryable?
-        }.tap do |tags|
-          tags['processor'] = result.processor_name if result.processor_name
-          tags['failure_reason'] = result.failure_reason if result.failure?
-        end
+        } # : Hash[String, untyped]
+
+        processor_name = result.processor_name
+        tags['processor'] = processor_name if processor_name
+
+        failure_reason = result.failure_reason
+        tags['failure_reason'] = failure_reason if result.failure? && failure_reason
+
+        tags
       end
 
       private_class_method def self.batch_metric_tags(batch)

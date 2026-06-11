@@ -1,16 +1,14 @@
 module CDC
   module Core
-    # Immutable grouping key for ordering-related dispatch.
     class OrderingKey
-      @scope: untyped
-      @components: untyped
+      EMPTY_COMPONENTS: metadata_hash
 
-      attr_reader scope: untyped
-      attr_reader components: untyped
+      attr_reader scope: Symbol
+      attr_reader components: shareable_hash
 
-      def initialize: (scope: untyped, ?components: ::Hash[untyped, untyped]) -> void
+      def initialize: (scope: Symbol | String, ?components: metadata_hash) -> void
       def empty?: () -> bool
-      def to_h: () -> untyped
+      def to_h: () -> shareable_hash
     end
   end
 end

@@ -7,6 +7,11 @@ module CDC
     # OrderingKey captures the scope plus the components that define a
     # particular ordered lane. It does not choose an execution strategy.
     class OrderingKey
+      EMPTY_COMPONENTS = Ractor.make_shareable(
+        {} # : Hash[untyped, untyped]
+          .freeze
+      )
+
       # @return [Symbol] ordering scope
       # @return [Hash{String=>Object}] normalized key components
       attr_reader :scope, :components
@@ -15,7 +20,7 @@ module CDC
       #
       # @param scope [#to_sym] ordering scope
       # @param components [Hash] key components
-      def initialize(scope:, components: {})
+      def initialize(scope:, components: EMPTY_COMPONENTS)
         @scope = OrderingScope.normalize(scope)
         @components = EventMetadata.new(components).to_h
         Ractor.make_shareable(self)

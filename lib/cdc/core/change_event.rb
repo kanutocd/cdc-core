@@ -9,6 +9,11 @@ module CDC
     # as operation, schema, table, before/after values, primary key, LSN, and
     # metadata.
     class ChangeEvent
+      EMPTY_METADATA = Ractor.make_shareable(
+        {} # : Hash[untyped, untyped]
+          .freeze
+      )
+
       # @return [Symbol] normalized CDC operation
       # @return [String] database schema name
       # @return [String] database table name
@@ -38,7 +43,7 @@ module CDC
       # @param metadata [Hash, EventMetadata] additional event metadata
       def initialize(operation:, schema:, table:, old_values: nil, new_values: nil, primary_key: nil,
                      transaction_id: nil, commit_lsn: nil, sequence_number: nil, occurred_at: nil,
-                     metadata: {})
+                     metadata: EMPTY_METADATA)
         @operation = Operation.normalize(operation)
         @schema = String(schema).freeze
         @table = String(table).freeze

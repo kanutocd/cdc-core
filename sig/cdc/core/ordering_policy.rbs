@@ -1,27 +1,23 @@
 module CDC
   module Core
-    # Immutable description of how ordered CDC work should be grouped.
     class OrderingPolicy
-      @scope: untyped
-      @position: untyped
-      @transaction_aware: untyped
+      SUPPORTED_POSITIONS: ::Array[Symbol]
 
-      SUPPORTED_POSITIONS: untyped
+      attr_reader scope: Symbol
+      attr_reader position: Symbol
+      attr_reader transaction_aware: bool
 
-      attr_reader scope: untyped
-      attr_reader position: untyped
-      attr_reader transaction_aware: untyped
-
-      def initialize: (scope: untyped, ?position: untyped?, ?transaction_aware: bool) -> void
+      def initialize: (scope: Symbol | String, ?position: Symbol | String, ?transaction_aware: bool) -> void
       def transaction_aware?: () -> bool
-      def key_for: (untyped event) -> untyped
-      def position_for: (untyped event) -> untyped
-      def to_h: () -> untyped
+      def key_for: (ChangeEvent event) -> OrderingKey?
+      def position_for: (ChangeEvent event) -> EventPosition
+      def to_h: () -> shareable_hash
 
       private
 
-      def normalize_position: (untyped position) -> untyped
-      def key_components: (untyped event) -> untyped
+      def normalize_position: (Symbol | String position) -> Symbol
+      def key_components: (ChangeEvent event) -> metadata_hash
     end
   end
 end
+

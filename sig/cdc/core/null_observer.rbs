@@ -1,8 +1,7 @@
 module CDC
   module Core
-    # No-op observer for callers that do not need instrumentation.
     class NullObserver < Observer
-      INSTANCE: untyped
+      INSTANCE: NullObserver
     end
   end
 end

@@ -8,6 +8,11 @@ module CDC
     # boundaries instead of isolated row-level events. The contained events and
     # metadata are Ractor-shareable when construction succeeds.
     class TransactionEnvelope
+      EMPTY_METADATA = Ractor.make_shareable(
+        {} # : Hash[untyped, untyped]
+          .freeze
+      )
+
       # @return [Object] transaction identifier
       # @return [Array<ChangeEvent>] events committed by the transaction
       # @return [String, nil] commit log sequence number
@@ -22,7 +27,7 @@ module CDC
       # @param commit_lsn [#to_s, nil] commit log sequence number
       # @param committed_at [Time, nil] commit timestamp
       # @param metadata [Hash, EventMetadata] transaction metadata
-      def initialize(transaction_id:, events:, commit_lsn: nil, committed_at: nil, metadata: {})
+      def initialize(transaction_id:, events:, commit_lsn: nil, committed_at: nil, metadata: EMPTY_METADATA)
         @transaction_id = transaction_id
         @events = Ractor.make_shareable(events.freeze)
         @commit_lsn = commit_lsn&.to_s&.freeze
