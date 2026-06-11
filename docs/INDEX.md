@@ -1,10 +1,15 @@
 # CDC Core API Documentation
 
-`cdc-core` is the shared vocabulary of the CDC Ecosystem.
+[![Gem Version](https://badge.fury.io/rb/cdc-core.svg)](https://badge.fury.io/rb/cdc-core)
+[![CI](https://github.com/kanutocd/cdc-core/workflows/CI/badge.svg)](https://github.com/kanutocd/cdc-core/actions)
+[![Ruby Version](https://img.shields.io/badge/ruby-%3E%3D%203.4-ruby.svg)](https://www.ruby-lang.org/en/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+`cdc-core` is the shared vocabulary of the CDC ecosystem.
 
 It defines immutable, Ractor-safe primitives for describing data changes and the small contracts used to route those changes through processors and pipelines. It does not ingest from upstream systems, decode source-specific payloads, choose a scheduler, or persist to sinks.
 
-See [architecture.md](architecture.md) for the arc42-style component overview.
+See [ARCHITECTURE.md](file.ARCHITECTURE.html) for the arc42-style component overview.
 
 ## Where cdc-core Fits
 
@@ -23,7 +28,7 @@ cdc-core vocabulary
       |
       +--> application sinks / processors
 ```
-The important boundary is the normalization boundary defined by CDC::Core::SourceAdapter.
+The important boundary is normalization, defined by `CDC::Core::SourceAdapter`.
 
 A source adapter turns a source-specific stream, log, API payload, or protocol message into `cdc-core` objects. After that normalization step, downstream processors can use one shared language regardless of where the change came from.
 
@@ -124,13 +129,13 @@ It records the operation, table identity, old values, new values, primary key, t
 ```ruby
 event = CDC::Core::ChangeEvent.new(
   operation: :update,
-  schema: "public",
-  table: "users",
-  old_values: { "email" => "old@example.com" },
-  new_values: { "email" => "new@example.com" },
-  primary_key: { "id" => 7 },
+  schema: 'public',
+  table: 'users',
+  old_values: { 'email' => 'old@example.com' },
+  new_values: { 'email' => 'new@example.com' },
+  primary_key: { 'id' => 7 },
   transaction_id: 42,
-  commit_lsn: "0/16B6C50"
+  commit_lsn: '0/16B6C50'
 )
 
 event.update?
@@ -145,9 +150,9 @@ It is useful when processors care about what changed rather than only that a row
 
 ```ruby
 change = CDC::Core::ColumnChange.new(
-  name: "email",
-  old_value: "old@example.com",
-  new_value: "new@example.com"
+  name: 'email',
+  old_value: 'old@example.com',
+  new_value: 'new@example.com'
 )
 
 change.changed?
@@ -161,7 +166,7 @@ Processors can use it when transactional ordering matters.
 ```ruby
 envelope = CDC::Core::TransactionEnvelope.new(
   transaction_id: 42,
-  commit_lsn: "0/16B6C50",
+  commit_lsn: '0/16B6C50',
   events: [event]
 )
 
@@ -204,9 +209,9 @@ processor.healthy?
 ```ruby
 result = CDC::Core::ProcessorResult.failure(
   error,
-  processor: "AuditProcessor",
+  processor: 'AuditProcessor',
   retryable: false,
-  reason: "invalid payload"
+  reason: 'invalid payload'
 )
 
 result.failure_reason
@@ -280,7 +285,7 @@ It is the right primitive when a work item should be skipped unless all filters 
 
 ```ruby
 users_filter = CDC::Core::Filter.new do |event|
-  event.table == "users"
+  event.table == 'users'
 end
 
 pipeline = CDC::Core::Pipeline.new(
@@ -313,13 +318,11 @@ A `CDC::Core::CompositeProcessor` fans one input out to many processors.
 Each processor receives the same original input. Processor A's result is not fed into Processor B. This makes `CompositeProcessor` suitable for independent side effects such as auditing, metrics, indexing, or notifications.
 
 ```ruby
-composite = CDC::Core::CompositeProcessor.new(
-  processors: [
-    AuditProcessor.new,
-    MetricsProcessor.new,
-    SearchIndexProcessor.new
-  ]
-)
+composite = CDC::Core::CompositeProcessor.new([
+  AuditProcessor.new,
+  MetricsProcessor.new,
+  SearchIndexProcessor.new
+])
 
 result = composite.process(event)
 ```
@@ -331,7 +334,7 @@ input
   +-> Processor A
   +-> Processor B
   +-> Processor C
-  -> aggregate ProcessorResult
+  -> Array<ProcessorResult>
 ```
 
 Use this when the workflow question is:
@@ -363,12 +366,10 @@ class SendNotificationsProcessor < CDC::Core::Processor
   end
 end
 
-chain = CDC::Core::ProcessorChain.new(
-  processors: [
-    LoadUsersProcessor.new,
-    SendNotificationsProcessor.new
-  ]
-)
+chain = CDC::Core::ProcessorChain.new([
+  LoadUsersProcessor.new,
+  SendNotificationsProcessor.new
+])
 
 chain.process([1, 2, 3])
 ```
@@ -397,7 +398,7 @@ Filters are intentionally small so routing logic remains easy to test.
 
 ```ruby
 filter = CDC::Core::Filter.new do |event|
-  event.table == "users"
+  event.table == 'users'
 end
 
 filter.match?(event)
@@ -425,21 +426,17 @@ One concrete shape:
 ```ruby
 users_updates = CDC::Core::Pipeline.new(
   filters: [
-    CDC::Core::Filter.new { |event| event.table == "users" },
+    CDC::Core::Filter.new { |event| event.table == 'users' },
     CDC::Core::Filter.new { |event| event.update? }
   ],
-  processor: CDC::Core::ProcessorChain.new(
-    processors: [
-      LoadUsersFromEventProcessor.new,
-      CDC::Core::CompositeProcessor.new(
-        processors: [
-          SendNotificationsProcessor.new,
-          UpdateSearchIndexProcessor.new,
-          EmitMetricsProcessor.new
-        ]
-      )
-    ]
-  )
+  processor: CDC::Core::ProcessorChain.new([
+    LoadUsersFromEventProcessor.new,
+    CDC::Core::CompositeProcessor.new([
+      SendNotificationsProcessor.new,
+      UpdateSearchIndexProcessor.new,
+      EmitMetricsProcessor.new
+    ])
+  ])
 )
 
 users_updates.process(event)
@@ -453,10 +450,9 @@ In this example:
 - `Filter` keeps routing logic testable and explicit.
 - Every step speaks through `ProcessorResult`.
 
-
 ## Design Principles
 
-`cdc-core` follows the same principles as the wider CDC Ecosystem:
+`cdc-core` follows the same principles as the wider CDC ecosystem:
 
 - small public API
 - pure Ruby implementation
@@ -472,6 +468,15 @@ Concurrency and parallelism belong in specialized downstream runtime gems such a
 Source ingestion and source-specific normalization belong in source adapters.
 
 `cdc-core` stays boring on purpose.
+
+## Documentation and Development
+
+The API documentation is generated with YARD and uses this file as the documentation readme.
+
+```bash
+bundle exec rake rbs:validate
+bundle exec yard doc
+```
 
 ## API Reference
 

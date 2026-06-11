@@ -28,7 +28,7 @@ module CDC
       # Process one event through the pipeline.
       #
       # @param event [ChangeEvent] event to process
-      # @return [ProcessorResult]
+      # @return [ProcessorResult] result for the event
       def process(event)
         observer.dispatch_started(event)
         return ProcessorResult.skipped(event, metadata: { reason: 'filtered' }) unless matches?(event)
@@ -45,7 +45,7 @@ module CDC
       # Process many events in order.
       #
       # @param events [Enumerable<ChangeEvent>] events to process
-      # @return [Array<ProcessorResult>]
+      # @return [Array<ProcessorResult>] results in input order
       def process_many(events)
         events.map { |event| process(event) }.freeze
       end
@@ -54,8 +54,8 @@ module CDC
 
       # Check whether every filter matches an event.
       #
-      # @param event [ChangeEvent]
-      # @return [Boolean]
+      # @param event [ChangeEvent] event to test
+      # @return [Boolean] true when every filter matches
       def matches?(event)
         filters.all? { |filter| filter.match?(event) }
       end
@@ -64,7 +64,7 @@ module CDC
       #
       # @param result [Object] raw processor result
       # @param event [ChangeEvent] processed event
-      # @return [ProcessorResult]
+      # @return [ProcessorResult] normalized processor result
       def normalize_result(result, event)
         return result if result.is_a?(ProcessorResult)
 

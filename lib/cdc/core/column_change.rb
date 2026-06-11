@@ -27,14 +27,14 @@ module CDC
 
       # Whether the old and new values differ.
       #
-      # @return [Boolean]
+      # @return [Boolean] true when the old and new values differ
       def changed?
         old_value != new_value
       end
 
       # Convert the change into a Ractor-shareable hash.
       #
-      # @return [Hash{String=>Object,nil}]
+      # @return [Hash{String=>Object,nil}] Ractor-shareable column change representation
       def to_h
         Ractor.make_shareable({ 'name' => name, 'old_value' => old_value, 'new_value' => new_value }.freeze)
       end
@@ -43,8 +43,8 @@ module CDC
 
       # Convert a value into a Ractor-shareable representation.
       #
-      # @param value [Object, nil]
-      # @return [Object, String, nil]
+      # @param value [Object, nil] value to normalize
+      # @return [Object, String, nil] shareable value or inspect string fallback
       def make_value_shareable(value)
         Ractor.make_shareable(value)
       rescue Ractor::Error

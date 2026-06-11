@@ -32,13 +32,13 @@ module CDC
 
       # Whether transaction boundaries should be preserved.
       #
-      # @return [Boolean]
+      # @return [Boolean] true when transaction boundaries should be preserved
       def transaction_aware? = transaction_aware
 
       # Derive an ordering key for an event.
       #
       # @param event [ChangeEvent] event to classify
-      # @return [OrderingKey, nil]
+      # @return [OrderingKey, nil] ordering key for the event, or nil when no key applies
       def key_for(event)
         return nil if scope == OrderingScope::NONE
 
@@ -51,7 +51,7 @@ module CDC
       # Derive an event position for an event.
       #
       # @param event [ChangeEvent] event to classify
-      # @return [EventPosition]
+      # @return [EventPosition] position metadata for the event
       def position_for(event)
         EventPosition.new(
           strategy: position,
@@ -64,7 +64,7 @@ module CDC
 
       # Convert the policy into a Ractor-shareable hash.
       #
-      # @return [Hash{String=>Object}]
+      # @return [Hash{String=>Object}] Ractor-shareable policy representation
       def to_h
         Ractor.make_shareable({
           'scope' => scope,
@@ -78,7 +78,7 @@ module CDC
       # Normalize the position strategy.
       #
       # @param position [#to_sym] position strategy
-      # @return [Symbol]
+      # @return [Symbol] normalized supported position strategy
       def normalize_position(position)
         value = position.to_sym
         return value if SUPPORTED_POSITIONS.include?(value)
@@ -90,8 +90,8 @@ module CDC
 
       # Build the components for the current scope.
       #
-      # @param event [ChangeEvent]
-      # @return [Hash]
+      # @param event [ChangeEvent] event to classify
+      # @return [Hash, nil] key components for the current scope, or nil for an unknown internal scope
       def key_components(event)
         case scope
         when OrderingScope::GLOBAL

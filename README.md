@@ -1,5 +1,12 @@
 # cdc-core
 
+[![Gem Version](https://badge.fury.io/rb/cdc-core.svg)](https://badge.fury.io/rb/cdc-core)
+[![CI](https://github.com/kanutocd/cdc-core/workflows/CI/badge.svg)](https://github.com/kanutocd/cdc-core/actions)
+[![Ruby Version](https://img.shields.io/badge/ruby-%3E%3D%203.4-ruby.svg)](https://www.ruby-lang.org/en/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+
+
 Shared Change Data Capture vocabulary for Ruby.
 
 `cdc-core` provides immutable, Ractor-safe event objects and processor contracts for building CDC systems. It intentionally does not connect to databases, parse wire protocols, decode PostgreSQL OIDs, run schedulers, or integrate with Rails.
@@ -114,11 +121,11 @@ It is the fiber-friendly runtime path.
 ## Installation
 
 ```ruby
-gem "cdc-core"
+gem 'cdc-core'
 ```
 
 ```ruby
-require "cdc/core"
+require 'cdc/core'
 ```
 
 ## Change Events
@@ -310,9 +317,10 @@ docs/**/*.md
 
 ```bash
 bundle exec rake
-bundle exec steep check
+bundle exec rake rbs:validate
+bundle exec yard doc
 ```
 
 ## License
 
-[MIT](./LICENSE.txt).
+[MIT](LICENSE.txt)

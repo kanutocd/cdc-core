@@ -10,21 +10,21 @@ module CDC
     class Processor
       # Mark this processor class as safe to execute in Ractor-aware runtimes.
       #
-      # @return [true]
+      # @return [true] marker value confirming the class was marked Ractor-safe
       def self.ractor_safe!
         @ractor_safe = true
       end
 
       # Whether this processor class has declared Ractor safety.
       #
-      # @return [Boolean]
+      # @return [Boolean] true when the class has declared Ractor safety
       def self.ractor_safe?
         @ractor_safe == true
       end
 
       # Whether this processor instance is Ractor-safe.
       #
-      # @return [Boolean]
+      # @return [Boolean] true when the instance's class has declared Ractor safety
       def ractor_safe?
         self.class.ractor_safe?
       end
@@ -34,7 +34,7 @@ module CDC
       # Runtime layers can call this before dispatch begins. The default
       # implementation is a no-op.
       #
-      # @return [self]
+      # @return [self] started processor instance
       def start
         self
       end
@@ -44,7 +44,7 @@ module CDC
       # Runtime layers can call this during shutdown. The default implementation
       # is a no-op.
       #
-      # @return [self]
+      # @return [self] stopped processor instance
       def stop
         self
       end
@@ -54,7 +54,7 @@ module CDC
       # Runtime layers can call this before shutdown or checkpoints. The
       # default implementation is a no-op.
       #
-      # @return [self]
+      # @return [self] flushed processor instance
       def flush
         self
       end
@@ -63,7 +63,7 @@ module CDC
       #
       # The default implementation assumes the processor is healthy.
       #
-      # @return [Boolean]
+      # @return [Boolean] true when the processor can accept work
       def healthy?
         true
       end

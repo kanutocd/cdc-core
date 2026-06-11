@@ -28,12 +28,12 @@ module CDC
 
       # Whether the key has no components.
       #
-      # @return [Boolean]
+      # @return [Boolean] true when the key has no components
       def empty? = components.empty?
 
       # Convert the key into a Ractor-shareable hash.
       #
-      # @return [Hash{String=>Object}]
+      # @return [Hash{String=>Object}] Ractor-shareable ordering key representation
       def to_h
         Ractor.make_shareable({
           'scope' => scope,

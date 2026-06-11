@@ -19,7 +19,7 @@ module CDC
       # Subclasses must override this method.
       #
       # @param _input [Object] source-specific payload
-      # @return [ChangeEvent, TransactionEnvelope, Array<ChangeEvent>, Array<TransactionEnvelope>]
+      # @return [ChangeEvent,TransactionEnvelope, Array<ChangeEvent>, Array<TransactionEnvelope>] normalized core object or objects # rubocop:disable Layout/LineLength
       # @raise [NotImplementedError] when not implemented by a subclass
       def normalize(_input)
         raise NotImplementedError, "#{self.class} must implement #normalize"
@@ -32,7 +32,7 @@ module CDC
       # objects for each payload.
       #
       # @param inputs [Enumerable] source-specific payloads
-      # @return [Array]
+      # @return [Array] flattened normalized core objects
       def normalize_many(inputs)
         Array(inputs).flat_map { |input| normalize(input) }.freeze
       end

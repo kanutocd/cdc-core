@@ -34,7 +34,7 @@ module CDC
       # value is the final ProcessorResult produced by the chain.
       #
       # @param input [Object] initial input for the first processor
-      # @return [ProcessorResult] final processor result or the first failed/skipped result
+      # @return [ProcessorResult] final processor result or the first failed or skipped result
       def process(input)
         observer.dispatch_started(input)
         current_input = input

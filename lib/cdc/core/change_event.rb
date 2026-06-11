@@ -69,7 +69,7 @@ module CDC
 
       # Fully qualified table name in schema.table form.
       #
-      # @return [String]
+      # @return [String] fully qualified table name
       def qualified_table_name = "#{schema}.#{table}".freeze
 
       # Compute changed columns by comparing old and new values.
@@ -88,7 +88,7 @@ module CDC
 
       # Convert the event into a Ractor-shareable hash.
       #
-      # @return [Hash{String=>Object,nil}]
+      # @return [Hash{String=>Object,nil}] Ractor-shareable event representation
       def to_h
         Ractor.make_shareable({
           'operation' => operation,
@@ -109,8 +109,8 @@ module CDC
 
       # Convert a hash into immutable EventMetadata storage, preserving nil.
       #
-      # @param hash [Hash, nil]
-      # @return [Hash, nil]
+      # @param hash [Hash, nil] values to normalize
+      # @return [Hash, nil] normalized shareable values, or nil when no values were provided
       def freeze_hash_or_nil(hash)
         return nil if hash.nil?
 

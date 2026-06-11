@@ -39,14 +39,14 @@ module CDC
 
       # Processors that declared Ractor safety.
       #
-      # @return [Array<Processor>]
+      # @return [Array<Processor>] processors that declared Ractor safety
       def ractor_safe_processors
         processors.select(&:ractor_safe?).freeze
       end
 
       # Processors that should remain sequential in the core runtime.
       #
-      # @return [Array<Processor>]
+      # @return [Array<Processor>] processors that should run sequentially
       def sequential_processors
         processors.reject(&:ractor_safe?).freeze
       end
@@ -57,7 +57,7 @@ module CDC
       #
       # @param result [Object] raw processor result
       # @param event [ChangeEvent] processed event
-      # @return [ProcessorResult]
+      # @return [ProcessorResult] normalized processor result
       def normalize_result(result, event)
         return result if result.is_a?(ProcessorResult)
 

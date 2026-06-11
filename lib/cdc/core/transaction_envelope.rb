@@ -38,17 +38,17 @@ module CDC
 
       # Whether the envelope has no events.
       #
-      # @return [Boolean]
+      # @return [Boolean] true when the envelope has no events
       def empty? = events.empty?
 
       # Number of events in the envelope.
       #
-      # @return [Integer]
+      # @return [Integer] number of events in the envelope
       def size = events.size
 
       # Convert the transaction envelope into a Ractor-shareable hash.
       #
-      # @return [Hash{String=>Object,nil}]
+      # @return [Hash{String=>Object,nil}] Ractor-shareable transaction representation
       def to_h
         Ractor.make_shareable({
           'transaction_id' => transaction_id,

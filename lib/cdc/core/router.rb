@@ -26,8 +26,8 @@ module CDC
 
       # Process a CDC work item.
       #
-      # @param item [ChangeEvent, TransactionEnvelope, Array<ChangeEvent>]
-      # @return [Object]
+      # @param item [ChangeEvent, TransactionEnvelope, Array<ChangeEvent>] work item to route
+      # @return [Object] value returned by the selected handler
       # @raise [UnsupportedWorkItemError] when the item cannot be routed
       def process(item)
         observer.dispatch_started(item)
@@ -49,8 +49,8 @@ module CDC
 
       # Route a transaction envelope to the configured transaction processor.
       #
-      # @param transaction [TransactionEnvelope]
-      # @return [Object]
+      # @param transaction [TransactionEnvelope] transaction envelope to route
+      # @return [Object] value returned by the transaction processor
       def route_transaction(transaction)
         return transaction_processor.process(transaction) if transaction_processor
 
@@ -60,8 +60,8 @@ module CDC
 
       # Route many change events through the configured processor.
       #
-      # @param items [Array]
-      # @return [Object]
+      # @param items [Array] change events to route as a batch
+      # @return [Object] batch processor result or array of per-event results
       def route_many(items)
         unless items.all?(ChangeEvent)
           raise UnsupportedWorkItemError, "unsupported CDC work item: Array(#{items.first.class})"

@@ -27,7 +27,7 @@ module CDC
       # Fetch a metadata value by string or symbol key.
       #
       # @param key [String, Symbol] metadata key
-      # @return [Object, nil]
+      # @return [Object, nil] metadata value for the given key
       def [](key)
         string_key = key.to_s
         return data[string_key] if data.key?(string_key)
@@ -37,7 +37,7 @@ module CDC
 
       # Return the normalized Ractor-shareable hash.
       #
-      # @return [Hash{String=>Object}]
+      # @return [Hash{String=>Object}] normalized Ractor-shareable metadata
       def to_h
         data
       end
@@ -46,8 +46,8 @@ module CDC
 
       # Recursively normalize and freeze a hash.
       #
-      # @param hash [Hash]
-      # @return [Hash{String=>Object}]
+      # @param hash [Hash] metadata hash to normalize
+      # @return [Hash{String=>Object}] recursively normalized shareable hash
       def deep_shareable_hash(hash)
         converted = hash.each_with_object(
           {} # : Hash[String, untyped]
@@ -59,16 +59,16 @@ module CDC
 
       # Normalize metadata keys to frozen strings.
       #
-      # @param key [Object]
-      # @return [String]
+      # @param key [Object] metadata key to normalize
+      # @return [String] frozen string key
       def normalize_key(key)
         key.to_s.freeze
       end
 
       # Normalize a metadata value into a shareable representation.
       #
-      # @param value [Object]
-      # @return [Object]
+      # @param value [Object] metadata value to normalize
+      # @return [Object] Ractor-shareable value or inspect string fallback
       def normalize_value(value)
         case value
         when Hash

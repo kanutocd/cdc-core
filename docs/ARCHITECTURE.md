@@ -6,7 +6,7 @@ It defines the domain language used by source adapters, runtime gems, processors
 
 This document is intentionally arc42-shaped, with C4-style zoom levels inside the component view so readers can move from the whole system to the core contracts without losing the thread.
 
-## 1. Introduction And Goals
+## 1. Introduction and Goals
 
 ### Purpose
 
@@ -78,7 +78,7 @@ PostgreSQL WAL is the first concrete upstream because it is a strong reference i
 
 Other sources can still fit the model later, but they should do so by normalizing into `cdc-core` rather than by redefining the shared vocabulary.
 
-## 2. Context And Scope
+## 2. Context and Scope
 
 ### System Context
 
@@ -121,7 +121,7 @@ Upstream source
             +--> application processors / sinks
 ```
 
-### Responsibilities By Layer
+### Responsibilities by Layer
 
 ```text
 source -> source adapter -> shared vocabulary -> runtime gems -> sinks
@@ -132,7 +132,7 @@ source -> source adapter -> shared vocabulary -> runtime gems -> sinks
 - `pgoutput-client` streams PostgreSQL replication data.
 - `pgoutput-parser` parses protocol payloads.
 - `pgoutput-decoder` converts protocol messages into typed row changes.
-- The concrete PostgreSQL source-adapter path currently lives around the `pgoutput*` family; `cdc-core` defines the boundary, not the execution.
+- The concrete PostgreSQL source-adapter path currently lives around the `pgoutput*` family; `cdc-core` defines the boundary, not the execution model.
 - Non-PostgreSQL adapters can feed the same shared vocabulary when they emit compatible change semantics.
 - `cdc-core` defines the shared language and contracts.
 - `cdc-parallel` consumes normalized change events for CPU-bound work with Ractors.
@@ -170,7 +170,7 @@ cdc-core
 `cdc-parallel` is the Ractor-oriented path for CPU-bound processors.
 `cdc-concurrent` is the fiber-friendly path for processors that spend most of their time waiting on I/O.
 
-### Optional Everything Beyond The Vocabulary
+### Optional Everything Beyond the Vocabulary
 
 Source adapters, runtime acceleration, metrics backends, and sink storage remain optional. The core stays small so it can be reused everywhere.
 
@@ -190,7 +190,7 @@ Source adapters, runtime acceleration, metrics backends, and sink storage remain
                 |       |       |
                 v       v       v
          +-----------+ +-----------+ +-----------+
-         | Postgres  | | Rails log | | Nginx log |
+         |PostgreSQL | | Rails log | | Nginx log |
          |  adapter  | |  adapter  | |  adapter  |
          +-----------+ +-----------+ +-----------+
                 \       |       /
@@ -385,7 +385,7 @@ input
 
 A chain is useful for staged workflows such as load records, transform records, then deliver side effects. It should stop on failure or skipped results so dependent processors do not receive invalid input.
 
-### How The Workflow Primitives Can Dance Together
+### How the Workflow Primitives Compose
 
 A downstream runtime or application can compose the primitives without changing the processor contract.
 
@@ -417,7 +417,6 @@ In this shape:
 - `ProcessorChain` models dependency between workflow stages.
 - `CompositeProcessor` fans out independent side effects that share the same intermediate value.
 - Every stage still returns a `ProcessorResult`.
-
 
 ### CPU-Bound Runtime Path
 
@@ -493,7 +492,6 @@ The core data model does not assume a blocking or non-blocking execution model. 
 
 ```text
 Ruby 3.4+ for shared foundation gems
-Ruby 4+ where a downstream runtime requires newer Ractor behavior
 Pure Ruby first
 No required runtime dependencies
 Source adapters outside cdc-core
@@ -504,7 +502,7 @@ Runtime acceleration outside cdc-core
 
 `cdc-core` is deployed as a Ruby library, not as a service. Typical deployment shapes look like this:
 
-### Library In An Application
+### Library in an Application
 
 ```text
 Rails / Sinatra / Hanami / Custom App
@@ -542,7 +540,7 @@ process 3: sink persistence / downstream side effects
 
 The exact process layout depends on the source adapter, runtime gem, and deployment topology. `cdc-core` remains the shared contract layer in every case.
 
-## 9. Risks And Technical Debt
+## 9. Risks and Technical Debt
 
 - The router and observer surfaces are intentionally minimal, so runtime gems still need to define execution policy.
 - Metrics are intentionally backend-agnostic, so downstream users must choose a metrics system.

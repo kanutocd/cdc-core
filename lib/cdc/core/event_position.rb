@@ -33,7 +33,7 @@ module CDC
 
       # Convert the position into a Ractor-shareable hash.
       #
-      # @return [Hash{String=>Object,nil}]
+      # @return [Hash{String=>Object,nil}] Ractor-shareable position representation
       def to_h
         Ractor.make_shareable({
           'strategy' => strategy,

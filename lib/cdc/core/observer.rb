@@ -18,8 +18,8 @@ module CDC
 
       # Build a canonical metric tag set for a CDC work item or result.
       #
-      # @param payload [ChangeEvent, TransactionEnvelope, ProcessorResult, Array]
-      # @return [Hash{String=>Object}]
+      # @param payload [ChangeEvent, TransactionEnvelope, ProcessorResult, Array] payload to describe
+      # @return [Hash{String=>Object}] canonical metric tags for the payload
       def self.metric_tags(payload)
         tags = {} # : Hash[String, untyped]
         case payload
@@ -40,46 +40,46 @@ module CDC
 
       # Canonical metric name for the start hook.
       #
-      # @return [String]
+      # @return [String] canonical dispatch-started metric name
       def self.started_metric_name = METRIC_NAMES.fetch(:dispatch_started)
 
       # Canonical metric name for the success hook.
       #
-      # @return [String]
+      # @return [String] canonical dispatch-succeeded metric name
       def self.succeeded_metric_name = METRIC_NAMES.fetch(:dispatch_succeeded)
 
       # Canonical metric name for the failure hook.
       #
-      # @return [String]
+      # @return [String] canonical dispatch-failed metric name
       def self.failed_metric_name = METRIC_NAMES.fetch(:dispatch_failed)
 
       # Canonical metric name for the skip hook.
       #
-      # @return [String]
+      # @return [String] canonical dispatch-skipped metric name
       def self.skipped_metric_name = METRIC_NAMES.fetch(:dispatch_skipped)
 
       # Called before a work item is dispatched.
       #
-      # @param _event [ChangeEvent, TransactionEnvelope, Array]
-      # @return [void]
+      # @param _event [ChangeEvent, TransactionEnvelope, Array] work item about to be dispatched
+      # @return [void] no return value
       def dispatch_started(_event); end
 
       # Called after a work item is processed successfully.
       #
-      # @param _result [ProcessorResult, Array<ProcessorResult>]
-      # @return [void]
+      # @param _result [ProcessorResult, Array<ProcessorResult>] successful processor result or results
+      # @return [void] no return value
       def dispatch_succeeded(_result); end
 
       # Called after a work item fails.
       #
-      # @param _result [ProcessorResult]
-      # @return [void]
+      # @param _result [ProcessorResult] failed processor result
+      # @return [void] no return value
       def dispatch_failed(_result); end
 
       # Called when a work item is filtered or skipped.
       #
-      # @param _result [ProcessorResult]
-      # @return [void]
+      # @param _result [ProcessorResult] skipped processor result
+      # @return [void] no return value
       def dispatch_skipped(_result); end
 
       private_class_method def self.change_event_metric_tags(event)

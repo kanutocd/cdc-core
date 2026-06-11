@@ -27,7 +27,7 @@ module CDC
       # @param event [ChangeEvent, nil] processed event
       # @param metadata [Hash, EventMetadata] result metadata
       # @param value [Object, nil] value produced by the processor; defaults to event for compatibility
-      # @return [ProcessorResult]
+      # @return [ProcessorResult] successful processor result
       def self.success(event = nil, metadata: EMPTY_METADATA, value: event) = new(:success, event:, metadata:, value:)
 
       # Build a failure result.
@@ -39,7 +39,7 @@ module CDC
       # @param processor [String, nil] processor name associated with the failure
       # @param failed_at [String, nil] timestamp for when the failure occurred
       # @param metadata [Hash, EventMetadata] result metadata
-      # @return [ProcessorResult]
+      # @return [ProcessorResult] failed processor result
       def self.failure(error, event: nil, reason: nil, retryable: nil, processor: nil, failed_at: nil,
                        metadata: nil)
         base_metadata = metadata.nil? ? EventMetadata.new.to_h : metadata.to_h
@@ -57,7 +57,7 @@ module CDC
       #
       # @param event [ChangeEvent, nil] skipped event
       # @param metadata [Hash, EventMetadata] result metadata
-      # @return [ProcessorResult]
+      # @return [ProcessorResult] skipped processor result
       def self.skipped(event = nil, metadata: EMPTY_METADATA) = new(:skipped, event:, metadata:)
 
       # Build a processor result with an explicit status.
@@ -87,56 +87,56 @@ module CDC
 
       # Human-readable failure reason, when present.
       #
-      # @return [String, nil]
+      # @return [String, nil] human-readable failure reason
       def failure_reason
         metadata[:reason]
       end
 
       # Whether the failure is retryable.
       #
-      # @return [Boolean]
+      # @return [Boolean] true when metadata marks the failure retryable
       def retryable?
         metadata[:retryable] == true
       end
 
       # Name of the processor associated with the failure, when present.
       #
-      # @return [String, nil]
+      # @return [String, nil] processor name associated with the failure
       def processor_name
         metadata[:processor]
       end
 
       # Timestamp for when the failure occurred, when present.
       #
-      # @return [String, nil]
+      # @return [String, nil] timestamp for when the failure occurred
       def failed_at
         metadata[:failed_at]
       end
 
       # Error class name, when present.
       #
-      # @return [String, nil]
+      # @return [String, nil] class name of the associated error
       def error_class
         error&.class&.name
       end
 
       # Error message, when present.
       #
-      # @return [String, nil]
+      # @return [String, nil] message from the associated error
       def error_message
         error&.message
       end
 
       # Error backtrace, when present.
       #
-      # @return [Array<String>]
+      # @return [Array<String>] backtrace from the associated error
       def error_backtrace
         Array(error&.backtrace)
       end
 
       # Convert the result into a shareable hash.
       #
-      # @return [Hash{String=>Object,nil}]
+      # @return [Hash{String=>Object,nil}] Ractor-shareable result representation
       def to_h
         payload = {
           'status' => status,
